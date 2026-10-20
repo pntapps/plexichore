@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PlexiChore.App/PlexiChore.App.csproj" />
+    <Project Path="src/PlexiChore.Engine/PlexiChore.Engine.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/EngineHost/EngineHost.csproj" />
+    <Project Path="tools/EngineTestClient/EngineTestClient.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PlexiChore.App.Tests/PlexiChore.App.Tests.csproj" />
+  </Folder>
+</Solution>

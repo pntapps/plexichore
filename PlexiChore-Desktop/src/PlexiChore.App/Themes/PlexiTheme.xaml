@@ -1,0 +1,298 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+
+    <!-- ===== Palette (dark-first, electric violet → cyan) ===== -->
+    <Color x:Key="Plexi.Violet">#7C4DFF</Color>
+    <Color x:Key="Plexi.Cyan">#00E5FF</Color>
+    <Color x:Key="Plexi.Base">#0C0A14</Color>
+    <Color x:Key="Plexi.Surface">#15121F</Color>
+    <Color x:Key="Plexi.Green">#3DDC97</Color>
+    <Color x:Key="Plexi.Amber">#FFB547</Color>
+    <Color x:Key="Plexi.Red">#FF5C7A</Color>
+
+    <FontFamily x:Key="Plexi.Font">Segoe UI Variable Text, Segoe UI</FontFamily>
+    <FontFamily x:Key="Plexi.DisplayFont">Segoe UI Variable Display, Segoe UI Semibold, Segoe UI</FontFamily>
+
+    <LinearGradientBrush x:Key="Plexi.AccentGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#7C4DFF" Offset="0" />
+        <GradientStop Color="#00E5FF" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="Plexi.AccentGradientH" StartPoint="0,0.5" EndPoint="1,0.5">
+        <GradientStop Color="#9A6BFF" Offset="0" />
+        <GradientStop Color="#00E5FF" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="Plexi.AccentGradientHover" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#9670FF" Offset="0" />
+        <GradientStop Color="#4DEEFF" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="Plexi.HeroGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#2A1A5E" Offset="0" />
+        <GradientStop Color="#171334" Offset="0.55" />
+        <GradientStop Color="#0B2A3A" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="Plexi.HeroBorder" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#997C4DFF" Offset="0" />
+        <GradientStop Color="#2200E5FF" Offset="0.5" />
+        <GradientStop Color="#9900E5FF" Offset="1" />
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="Plexi.BaseBrush" Color="{StaticResource Plexi.Base}" />
+    <SolidColorBrush x:Key="Plexi.CardBrush" Color="#CC17141F" />
+    <SolidColorBrush x:Key="Plexi.CardHoverBrush" Color="#E01C1828" />
+    <SolidColorBrush x:Key="Plexi.CardBorderBrush" Color="#1FFFFFFF" />
+    <SolidColorBrush x:Key="Plexi.SubtleBrush" Color="#0DFFFFFF" />
+    <SolidColorBrush x:Key="Plexi.SubtleBrush2" Color="#16FFFFFF" />
+    <SolidColorBrush x:Key="Plexi.TextBrush" Color="#F4F2FA" />
+    <SolidColorBrush x:Key="Plexi.TextSecondaryBrush" Color="#A9A4BD" />
+    <SolidColorBrush x:Key="Plexi.TextTertiaryBrush" Color="#6F6A85" />
+    <SolidColorBrush x:Key="Plexi.VioletBrush" Color="{StaticResource Plexi.Violet}" />
+    <SolidColorBrush x:Key="Plexi.VioletLightBrush" Color="#B9A3FF" />
+    <SolidColorBrush x:Key="Plexi.CyanBrush" Color="{StaticResource Plexi.Cyan}" />
+    <SolidColorBrush x:Key="Plexi.GreenBrush" Color="{StaticResource Plexi.Green}" />
+    <SolidColorBrush x:Key="Plexi.AmberBrush" Color="{StaticResource Plexi.Amber}" />
+    <SolidColorBrush x:Key="Plexi.RedBrush" Color="{StaticResource Plexi.Red}" />
+    <SolidColorBrush x:Key="Plexi.GreenSoftBrush" Color="#1F3DDC97" />
+    <SolidColorBrush x:Key="Plexi.AmberSoftBrush" Color="#1FFFB547" />
+    <SolidColorBrush x:Key="Plexi.RedSoftBrush" Color="#1FFF5C7A" />
+    <SolidColorBrush x:Key="Plexi.VioletSoftBrush" Color="#267C4DFF" />
+    <SolidColorBrush x:Key="Plexi.CyanSoftBrush" Color="#1F00E5FF" />
+
+    <!-- ===== Text ===== -->
+    <Style x:Key="Plexi.PageTitle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Plexi.DisplayFont}" />
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource Plexi.TextBrush}" />
+    </Style>
+    <Style x:Key="Plexi.PageSubtitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{StaticResource Plexi.TextSecondaryBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Margin" Value="0,4,0,0" />
+    </Style>
+    <Style x:Key="Plexi.SectionHeader" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource Plexi.TextSecondaryBrush}" />
+        <Setter Property="Margin" Value="4,26,0,10" />
+    </Style>
+    <Style x:Key="Plexi.CardTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource Plexi.TextBrush}" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+    <Style x:Key="Plexi.Body" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource Plexi.TextSecondaryBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="LineHeight" Value="19" />
+    </Style>
+    <Style x:Key="Plexi.Caption" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="Foreground" Value="{StaticResource Plexi.TextTertiaryBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style x:Key="Plexi.StatValue" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Plexi.DisplayFont}" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource Plexi.TextBrush}" />
+    </Style>
+    <Style x:Key="Plexi.StatLabel" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{StaticResource Plexi.TextTertiaryBrush}" />
+        <Setter Property="Margin" Value="0,0,0,2" />
+    </Style>
+
+    <!-- ===== Card ===== -->
+    <Style x:Key="Plexi.Card" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Plexi.CardBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Plexi.CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Padding" Value="22,20" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+    <Style x:Key="Plexi.Tile" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Plexi.SubtleBrush}" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="14,10" />
+    </Style>
+    <Style x:Key="Plexi.IconBubble" TargetType="Border">
+        <Setter Property="Width" Value="44" />
+        <Setter Property="Height" Value="44" />
+        <Setter Property="CornerRadius" Value="13" />
+        <Setter Property="Background" Value="{StaticResource Plexi.VioletSoftBrush}" />
+    </Style>
+
+    <!-- ===== Badge / pill ===== -->
+    <Style x:Key="Plexi.Badge" TargetType="Border">
+        <Setter Property="CornerRadius" Value="999" />
+        <Setter Property="Padding" Value="10,3" />
+        <Setter Property="Background" Value="{StaticResource Plexi.SubtleBrush2}" />
+        <Setter Property="Margin" Value="0,0,6,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <!-- Status chips in the hero card: rounded rectangle with a hairline border -->
+    <Style x:Key="Plexi.StatusChip" TargetType="Border">
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12,7" />
+        <Setter Property="Background" Value="#14FFFFFF" />
+        <Setter Property="BorderBrush" Value="#26FFFFFF" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Margin" Value="0,0,8,6" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style x:Key="Plexi.BadgeText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource Plexi.TextBrush}" />
+    </Style>
+
+    <!-- ===== Buttons ===== -->
+    <Style x:Key="Plexi.PrimaryButton" TargetType="Button">
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Padding" Value="18,9" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Border x:Name="Glow" CornerRadius="10" Background="{StaticResource Plexi.AccentGradient}" Opacity="0">
+                            <Border.Effect>
+                                <BlurEffect Radius="14" />
+                            </Border.Effect>
+                        </Border>
+                        <Border x:Name="Bg" CornerRadius="10" Background="{StaticResource Plexi.AccentGradient}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{StaticResource Plexi.AccentGradientHover}" />
+                            <Setter TargetName="Glow" Property="Opacity" Value="0.55" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bg" Property="Opacity" Value="0.85" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bg" Property="Opacity" Value="0.35" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Plexi.SecondaryButton" TargetType="Button">
+        <Setter Property="Foreground" Value="{StaticResource Plexi.TextBrush}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Background" Value="{StaticResource Plexi.SubtleBrush2}" />
+        <Setter Property="BorderBrush" Value="#24FFFFFF" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bg" CornerRadius="10" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="1" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="#26FFFFFF" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="#14FFFFFF" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bg" Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Plexi.DangerButton" TargetType="Button" BasedOn="{StaticResource Plexi.SecondaryButton}">
+        <Setter Property="Foreground" Value="#FF8FA3" />
+        <Setter Property="Background" Value="#14FF5C7A" />
+        <Setter Property="BorderBrush" Value="#33FF5C7A" />
+    </Style>
+
+    <Style x:Key="Plexi.GhostButton" TargetType="Button">
+        <Setter Property="Foreground" Value="{StaticResource Plexi.CyanBrush}" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bg" CornerRadius="8" Background="Transparent" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="#1400E5FF" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== Navigation list ===== -->
+    <Style x:Key="Plexi.NavItem" TargetType="ListBoxItem">
+        <Setter Property="Foreground" Value="{StaticResource Plexi.TextSecondaryBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Margin" Value="0,2" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Grid>
+                        <Border x:Name="Bg" CornerRadius="10" Background="Transparent" Padding="12,10">
+                            <ContentPresenter TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Border>
+                        <Border x:Name="Indicator" Width="3" Height="18" CornerRadius="2" HorizontalAlignment="Left" Margin="0,0,0,0"
+                                Background="{StaticResource Plexi.AccentGradient}" Visibility="Collapsed" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="#0FFFFFFF" />
+                            <Setter Property="Foreground" Value="{StaticResource Plexi.TextBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="#1A9A7BFF" />
+                            <Setter TargetName="Indicator" Property="Visibility" Value="Visible" />
+                            <Setter Property="Foreground" Value="{StaticResource Plexi.TextBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== Setting row ===== -->
+    <Style x:Key="Plexi.SettingRow" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Plexi.CardBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Plexi.CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="18,14" />
+        <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+
+    <Style x:Key="Plexi.ThinProgress" TargetType="ProgressBar">
+        <Setter Property="Height" Value="4" />
+        <Setter Property="Foreground" Value="{StaticResource Plexi.AccentGradientH}" />
+        <Setter Property="Background" Value="{StaticResource Plexi.SubtleBrush2}" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+</ResourceDictionary>

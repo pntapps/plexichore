@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>false</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>PlexiChore.App</RootNamespace>
+    <AssemblyName>PlexiChore</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\PlexiChore.ico</ApplicationIcon>
+    <Product>PlexiChore Desktop</Product>
+    <Company>PNT Apps</Company>
+    <Copyright>Copyright (c) PNT Apps</Copyright>
+    <Version>1.0.0</Version>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <!-- Diagnostic escape hatch: build with -p:UseEngineStub=true to compile against Contracts.cs + a fake server
+         (only used while the Engine project is mid-refactor). The normal build references the real Engine. -->
+    <UseEngineStub Condition="'$(UseEngineStub)' == ''">false</UseEngineStub>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WPF-UI" Version="4.0.3" />
+    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.4.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
+    <PackageReference Include="System.Management" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseEngineStub)' != 'true'">
+    <ProjectReference Include="..\PlexiChore.Engine\PlexiChore.Engine.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(UseEngineStub)' == 'true'">
+    <DefineConstants>$(DefineConstants);ENGINE_STUB</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(UseEngineStub)' == 'true'">
+    <Compile Include="..\PlexiChore.Engine\Contracts.cs" Link="EngineStub\Contracts.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\PlexiChore.ico" />
+    <Resource Include="Assets\logo-256.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PlexiChore.App.Tests" />
+  </ItemGroup>
+
+</Project>

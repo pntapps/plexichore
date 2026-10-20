@@ -1,0 +1,14 @@
+17:51:29.073 [INF] Engine: HELLO from Galaxy Tab S8 (SM-X700) 2560x1600 via USB [::ffff:127.0.0.1]:58396: mode=extend codec=h264 fps=60 20000kbps
+17:51:29.131 [INF] VirtualDisplayDriverProvider: Attach requested 2560x1600@60 right
+17:51:31.843 [INF] VirtualDisplayDriverProvider: Virtual monitor \\.\DISPLAY7 attached at {X=1920,Y=0,Width=2560,Height=1600}
+17:51:31.843 [INF] Engine: Virtual display attached: \\.\DISPLAY7 {X=1920,Y=0,Width=2560,Height=1600}
+17:51:32.126 [INF] Engine: Capture: \\.\DISPLAY7 2560x1600 at (1920,0) on NVIDIA GeForce GT 710
+17:51:32.936 [INF] Engine: H.264 encoder: hw:NVIDIA H.264 Encoder MFT (hardware, async, input=D3D11) 2560x1600@60 20000 kbps, forceKeyFrame=True
+17:51:33.196 [INF] Engine: CONFIG -> Galaxy Tab S8: h264 2560x1600@60 extend from \\.\DISPLAY7 {X=1920,Y=0,Width=2560,Height=1600} encoder=hw:NVIDIA H.264 Encoder MFT (hello)
+17:51:35.200 [DBG] Engine: perf: 59.8 fps (ptrOnly 12) compose 0.41 convert 0.30 encodeCall 1.20 ms | enc wait 0.10 lat 6.20 max 11.30 busy 0
+17:51:36.001 [DBG] Engine: Encoder busy, frame dropped
+17:51:37.200 [DBG] Engine: perf: 57.2 fps (ptrOnly 0) compose 0.52 convert 0.33 encodeCall 1.60 ms | enc wait 0.20 lat 7.80 max 19.40 busy 2
+17:52:00.000 [INF] Engine: Connection from [::ffff:127.0.0.1]:59530 (USB/loopback)
+17:52:00.200 [INF] Engine: Session Tablet ([::ffff:127.0.0.1]:59530) ended: no HELLO
+17:57:30.949 [INF] Engine: Session Galaxy Tab S8 ([::ffff:127.0.0.1]:58396) ended: connection closed by tablet
+17:36:59.500 [INF] Engine: Extend mode unavailable, using mirror

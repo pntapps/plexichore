@@ -1,0 +1,8 @@
+RequestedLayerState{Background for ee4ef9b SurfaceView[com.pntapps.plexichore/com.pntapps.plexichore.display.DebugDisplay]@0#75677 parentId=75675 relativeParentId=75671 z=-2147483648}
+RequestedLayerState{32e091a com.pntapps.plexichore/com.pntapps.plexichore.display.DebugDisplay#75670 parentId=75659}
+RequestedLayerState{com.pntapps.plexichore/com.pntapps.plexichore.display.DebugDisplay$_30685#75671 parentId=75670}
+RequestedLayerState{ActivityRecord{10799098 u0 com.pntapps.plexichore/.MainActivity t10509}#75563 parentId=75562}
+RequestedLayerState{Bounds for - com.pntapps.plexichore/com.pntapps.plexichore.display.DebugDisplay@0#75674 parentId=75671}
+RequestedLayerState{ee4ef9b SurfaceView[com.pntapps.plexichore/com.pntapps.plexichore.display.DebugDisplay]@0(BLAST)#75676 parentId=75675}
+RequestedLayerState{ee4ef9b SurfaceView[com.pntapps.plexichore/com.pntapps.plexichore.display.DebugDisplay]@0#75675 parentId=75674 relativeParentId=75671 z=-2}
+RequestedLayerState{aa11bb2 SurfaceView[com.pntapps.plexichore/com.pntapps.plexichore.display.DebugDisplay]@0(BLAST)#70001 parentId=70000}

@@ -1,0 +1,143 @@
+<UserControl x:Class="PlexiChore.App.Views.Pages.UsbPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" PanningMode="VerticalOnly">
+        <StackPanel Margin="28,6,36,36" MaxWidth="1040">
+            <TextBlock Text="USB" Style="{StaticResource Plexi.PageTitle}" />
+            <TextBlock Style="{StaticResource Plexi.PageSubtitle}"
+                       Text="Over USB the tablet reaches this PC through Android Debug Bridge (adb). PlexiChore forwards port 47800 to every authorized tablet automatically." />
+
+            <Border Style="{StaticResource Plexi.Card}" Margin="0,22,0,0" Padding="24,22">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource Plexi.IconBubble}" Width="52" Height="52" CornerRadius="15"
+                                Background="{Binding AdbStatusTone, Converter={StaticResource ToneSoftBrush}}">
+                            <ui:SymbolIcon Symbol="PlugConnected24" FontSize="26" Foreground="{Binding AdbStatusTone, Converter={StaticResource ToneBrush}}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="16,0,16,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding AdbStatusText}" FontSize="19" FontWeight="SemiBold" FontFamily="{StaticResource Plexi.DisplayFont}" />
+                            <TextBlock Text="{Binding AdbPathText}" Style="{StaticResource Plexi.Caption}" Margin="0,5,0,0" FontFamily="Cascadia Mono, Consolas"
+                                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource Plexi.SecondaryButton}" Command="{Binding ReapplyReverseCommand}" Margin="0,0,8,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="ArrowForward24" FontSize="15" />
+                                    <TextBlock Text="Re-apply forwarding" Margin="7,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource Plexi.SecondaryButton}" Command="{Binding RescanAdbCommand}">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="ArrowSync24" FontSize="15" />
+                                    <TextBlock Text="Rescan" Margin="7,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock Text="{Binding AdbError}" Margin="68,10,0,0" Foreground="#FFB3C1" TextWrapping="Wrap"
+                               Visibility="{Binding AdbError, Converter={StaticResource BoolToVis}}" />
+                </StackPanel>
+            </Border>
+
+            <!-- adb missing -->
+            <Border Margin="0,12,0,0" CornerRadius="16" Padding="24,20" BorderThickness="1" BorderBrush="{StaticResource Plexi.HeroBorder}"
+                    Background="{StaticResource Plexi.HeroGradient}"
+                    Visibility="{Binding AdbMissing, Converter={StaticResource BoolToVis}}">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Get Android platform-tools" Style="{StaticResource Plexi.CardTitle}" FontSize="16" />
+                        <TextBlock Style="{StaticResource Plexi.Body}" Margin="0,4,0,0" Foreground="#C9C3E0"
+                                   Text="One click downloads Google's official adb (about 7 MB) into your user profile. No admin rights needed." />
+                    </StackPanel>
+                    <Button Grid.Column="1" Style="{StaticResource Plexi.PrimaryButton}" Command="{Binding DownloadAdbCommand}" VerticalAlignment="Center" Margin="16,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="ArrowDownload24" FontSize="16" Foreground="White" />
+                            <TextBlock Text="Download adb" Margin="8,0,0,0" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+            <ProgressBar Margin="0,10,0,0" Style="{StaticResource Plexi.ThinProgress}" Value="{Binding AdbDownloadProgress}" Maximum="100"
+                         Visibility="{Binding AdbDownloading, Converter={StaticResource BoolToVis}}" />
+
+            <TextBlock Text="DETECTED DEVICES" Style="{StaticResource Plexi.SectionHeader}" />
+            <ItemsControl ItemsSource="{Binding AdbDevices}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Plexi.Card}" Margin="0,0,0,10" Padding="20,16">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource Plexi.IconBubble}" Width="40" Height="40" Background="{StaticResource Plexi.SubtleBrush2}">
+                                        <ui:SymbolIcon Symbol="Tablet24" FontSize="20" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource Plexi.CardTitle}" />
+                                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                            <ui:SymbolIcon Symbol="{Binding ConnectionIcon}" FontSize="12" Foreground="{StaticResource Plexi.TextTertiaryBrush}" />
+                                            <TextBlock Style="{StaticResource Plexi.Caption}" Margin="5,0,0,0">
+                                                <Run Text="{Binding Connection, Mode=OneWay}" /><Run Text="  ·  " /><Run Text="{Binding Serial, Mode=OneWay}" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <Border Grid.Column="2" Style="{StaticResource Plexi.Badge}" Margin="0" Padding="12,5"
+                                            Background="{Binding Tone, Converter={StaticResource ToneSoftBrush}}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse Width="7" Height="7" Fill="{Binding Tone, Converter={StaticResource ToneBrush}}" />
+                                            <TextBlock Text="{Binding StateText}" Style="{StaticResource Plexi.BadgeText}" Margin="7,0,0,0"
+                                                       Foreground="{Binding Tone, Converter={StaticResource ToneBrush}}" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                                <Border Margin="54,12,0,0" CornerRadius="10" Background="{StaticResource Plexi.AmberSoftBrush}" Padding="14,10"
+                                        Visibility="{Binding Hint, Converter={StaticResource BoolToVis}}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon Symbol="Lightbulb24" FontSize="16" Foreground="{StaticResource Plexi.AmberBrush}" VerticalAlignment="Top" />
+                                        <TextBlock Text="{Binding Hint}" Margin="9,0,0,0" TextWrapping="Wrap" Foreground="#FFD9A0" MaxWidth="760" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Border Style="{StaticResource Plexi.Card}" Visibility="{Binding HasAdbDevices, Converter={StaticResource InvBoolToVis}}">
+                <StackPanel HorizontalAlignment="Center" Margin="0,10">
+                    <ui:SymbolIcon Symbol="Tablet24" FontSize="34" Foreground="{StaticResource Plexi.TextTertiaryBrush}" />
+                    <TextBlock Text="No Android devices detected" Style="{StaticResource Plexi.CardTitle}" HorizontalAlignment="Center" Margin="0,10,0,4" />
+                    <TextBlock Text="Plug in your tablet with a data-capable USB cable and make sure USB debugging is on." Style="{StaticResource Plexi.Body}" HorizontalAlignment="Center" TextAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="FIRST-TIME SETUP ON THE TABLET" Style="{StaticResource Plexi.SectionHeader}" />
+            <Border Style="{StaticResource Plexi.Card}">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,18,0">
+                        <TextBlock Text="1 · Developer options" Style="{StaticResource Plexi.CardTitle}" Foreground="{StaticResource Plexi.CyanBrush}" />
+                        <TextBlock Style="{StaticResource Plexi.Body}" Margin="0,6,0,0" Text="Settings → About tablet → Software information → tap Build number seven times." />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="0,0,18,0">
+                        <TextBlock Text="2 · USB debugging" Style="{StaticResource Plexi.CardTitle}" Foreground="#B9A3FF" />
+                        <TextBlock Style="{StaticResource Plexi.Body}" Margin="0,6,0,0" Text="Settings → Developer options → turn on USB debugging (or Wireless debugging)." />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="3 · Allow this PC" Style="{StaticResource Plexi.CardTitle}" Foreground="{StaticResource Plexi.GreenBrush}" />
+                        <TextBlock Style="{StaticResource Plexi.Body}" Margin="0,6,0,0" Text="When the tablet asks “Allow USB debugging?”, tick Always allow and tap Allow." />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

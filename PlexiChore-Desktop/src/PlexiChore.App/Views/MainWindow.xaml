@@ -1,0 +1,136 @@
+<ui:FluentWindow x:Class="PlexiChore.App.Views.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:p="clr-namespace:PlexiChore.App.Views.Pages"
+                 Title="PlexiChore Desktop"
+                 Width="1200" Height="800" MinWidth="980" MinHeight="640"
+                 WindowStartupLocation="CenterScreen"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="None"
+                 WindowCornerPreference="Round"
+                 Background="{StaticResource Plexi.BaseBrush}"
+                 FontFamily="{StaticResource Plexi.Font}"
+                 Foreground="{StaticResource Plexi.TextBrush}"
+                 Icon="/Assets/PlexiChore.ico">
+    <Grid>
+        <!-- Ambient glow (stands in for Mica on Windows 10) -->
+        <Grid IsHitTestVisible="False" ClipToBounds="True">
+            <Ellipse Width="900" Height="700" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-320,-360,0,0">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop Color="#557C4DFF" Offset="0" />
+                        <GradientStop Color="#007C4DFF" Offset="1" />
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+            <Ellipse Width="1000" Height="800" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-380,-460">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop Color="#3300E5FF" Offset="0" />
+                        <GradientStop Color="#0000E5FF" Offset="1" />
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+        </Grid>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="252" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <ui:TitleBar Grid.Row="0" Grid.ColumnSpan="2" Title="" Height="40" CanMaximize="True" />
+
+            <!-- ============ Navigation rail ============ -->
+            <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Margin="18,14,10,18">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Orientation="Horizontal" Margin="6,6,0,26" IsHitTestVisible="False">
+                    <Image Source="/Assets/logo-256.png" Width="38" Height="38" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="PlexiChore" FontFamily="{StaticResource Plexi.DisplayFont}" FontSize="19" FontWeight="Bold"
+                                   Foreground="{StaticResource Plexi.AccentGradientH}" />
+                        <TextBlock Text="Desktop companion" FontSize="11.5" Foreground="{StaticResource Plexi.TextTertiaryBrush}" Margin="0,-1,0,0" />
+                    </StackPanel>
+                </StackPanel>
+
+                <ListBox Grid.Row="1" Background="Transparent" BorderThickness="0" Padding="0"
+                         SelectedIndex="{Binding SelectedPage, Mode=TwoWay}"
+                         ItemContainerStyle="{StaticResource Plexi.NavItem}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Home24" FontSize="19" />
+                            <TextBlock Text="Home" Margin="14,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="DesktopMac24" FontSize="19" />
+                            <TextBlock Text="Extended display" Margin="14,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="PlugConnected24" FontSize="19" />
+                            <TextBlock Text="USB" Margin="14,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Settings24" FontSize="19" />
+                            <TextBlock Text="Settings" Margin="14,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Info24" FontSize="19" />
+                            <TextBlock Text="About" Margin="14,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                </ListBox>
+
+                <!-- Server status -->
+                <Border Grid.Row="2" Style="{StaticResource Plexi.Card}" Padding="16,14" CornerRadius="14">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Grid Width="10" Height="10" VerticalAlignment="Center">
+                                <Ellipse Fill="{Binding HeroTone, Converter={StaticResource ToneBrush}}" />
+                            </Grid>
+                            <TextBlock Margin="9,0,0,0" FontWeight="SemiBold" FontSize="13">
+                                <Run Text="Server" /> <Run Text="{Binding ServerPill, Mode=OneWay}" />
+                            </TextBlock>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Plexi.Caption}" Margin="19,3,0,10">
+                            <Run Text="{Binding HostName, Mode=OneWay}" /><Run Text=" · port 47800" />
+                        </TextBlock>
+                        <Button Style="{StaticResource Plexi.SecondaryButton}" HorizontalAlignment="Stretch" Command="{Binding TogglePauseCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="{Binding PauseButtonIcon}" FontSize="15" />
+                                <TextBlock Text="{Binding PauseButtonText}" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ============ Pages ============ -->
+            <Grid Grid.Row="1" Grid.Column="1">
+                <p:HomePage Visibility="{Binding SelectedPage, Converter={StaticResource PageVis}, ConverterParameter=0}" />
+                <p:DisplayPage Visibility="{Binding SelectedPage, Converter={StaticResource PageVis}, ConverterParameter=1}" />
+                <p:UsbPage Visibility="{Binding SelectedPage, Converter={StaticResource PageVis}, ConverterParameter=2}" />
+                <p:SettingsPage Visibility="{Binding SelectedPage, Converter={StaticResource PageVis}, ConverterParameter=3}" />
+                <p:AboutPage Visibility="{Binding SelectedPage, Converter={StaticResource PageVis}, ConverterParameter=4}" />
+            </Grid>
+        </Grid>
+    </Grid>
+</ui:FluentWindow>

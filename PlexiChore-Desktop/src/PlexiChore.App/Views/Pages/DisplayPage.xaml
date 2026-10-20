@@ -1,0 +1,212 @@
+<UserControl x:Class="PlexiChore.App.Views.Pages.DisplayPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" PanningMode="VerticalOnly">
+        <StackPanel Margin="28,6,36,36" MaxWidth="1040">
+            <TextBlock Text="Extended display" Style="{StaticResource Plexi.PageTitle}" />
+            <TextBlock Style="{StaticResource Plexi.PageSubtitle}"
+                       Text="Use the tablet as a real second monitor. PlexiChore uses the signed, open-source Virtual Display Driver to add a virtual screen only while a tablet is in Extend mode." />
+
+            <Border Style="{StaticResource Plexi.Card}" Margin="0,22,0,0" Padding="24,22">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource Plexi.IconBubble}" Width="52" Height="52" CornerRadius="15"
+                                Background="{Binding VddTone, Converter={StaticResource ToneSoftBrush}}">
+                            <ui:SymbolIcon Symbol="DesktopMac24" FontSize="26" Foreground="{Binding VddTone, Converter={StaticResource ToneBrush}}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="16,0,16,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding VddTitle}" FontSize="19" FontWeight="SemiBold" FontFamily="{StaticResource Plexi.DisplayFont}" />
+                            <TextBlock Text="{Binding VddDetail}" Style="{StaticResource Plexi.Body}" Margin="0,4,0,0" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource Plexi.PrimaryButton}" Command="{Binding InstallVddCommand}"
+                                    Visibility="{Binding VddNotInstalled, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="ArrowDownload24" FontSize="16" Foreground="White" />
+                                    <TextBlock Text="Install driver" Margin="8,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource Plexi.SecondaryButton}" Command="{Binding RepairVddCommand}" Margin="0,0,8,0"
+                                    Visibility="{Binding VddInstalled, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Wrench24" FontSize="15" />
+                                    <TextBlock Text="Repair" Margin="7,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource Plexi.SecondaryButton}" Command="{Binding RestartVddCommand}" Margin="0,0,8,0"
+                                    Visibility="{Binding VddInstalled, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="ArrowSync24" FontSize="15" />
+                                    <TextBlock Text="Restart" Margin="7,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource Plexi.DangerButton}" Command="{Binding UninstallVddCommand}"
+                                    Visibility="{Binding VddInstalled, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Delete24" FontSize="15" />
+                                    <TextBlock Text="Uninstall" Margin="7,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Margin="68,14,0,0" CornerRadius="10" Background="{StaticResource Plexi.RedSoftBrush}" Padding="14,12"
+                            Visibility="{Binding VddNeedsRepair, Converter={StaticResource BoolToVis}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Symbol="Warning24" FontSize="16" Foreground="{StaticResource Plexi.RedBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <TextBlock Grid.Column="1" Margin="9,0,12,0" TextWrapping="Wrap" Foreground="#FFB3C1" VerticalAlignment="Center"
+                                       Text="Virtual monitor didn't start — click Repair (admin). The driver is running but Windows did not get its monitor, usually because the settings listed too many display modes. Repair writes a compact mode list and restarts the virtual display (one Windows prompt)." />
+                            <Button Grid.Column="2" Style="{StaticResource Plexi.PrimaryButton}" Command="{Binding RepairVddCommand}" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Wrench24" FontSize="15" Foreground="White" />
+                                    <TextBlock Text="Repair" Margin="7,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <Border Margin="68,14,0,0" CornerRadius="10" Background="{StaticResource Plexi.SubtleBrush}" Padding="14,12"
+                            Visibility="{Binding VddModeHint, Converter={StaticResource BoolToVis}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Symbol="Info24" FontSize="16" Foreground="{StaticResource Plexi.CyanBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <TextBlock Grid.Column="1" Margin="9,0,12,0" TextWrapping="Wrap" Style="{StaticResource Plexi.Body}" VerticalAlignment="Center"
+                                       Text="{Binding VddModeHint}" />
+                            <Button Grid.Column="2" Style="{StaticResource Plexi.SecondaryButton}" Command="{Binding AddTabletModeCommand}" VerticalAlignment="Center"
+                                    ToolTip="Adds this resolution to the driver and restarts the virtual display (admin, one Windows prompt).">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Add24" FontSize="15" />
+                                    <TextBlock Text="Add this tablet's exact resolution" Margin="7,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Margin="68,16,0,0" Visibility="{Binding VddBusy, Converter={StaticResource BoolToVis}}">
+                        <ProgressBar IsIndeterminate="True" Style="{StaticResource Plexi.ThinProgress}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding VddProgress}" Margin="68,10,0,0" Style="{StaticResource Plexi.Body}" Foreground="{StaticResource Plexi.CyanBrush}"
+                               Visibility="{Binding VddProgress, Converter={StaticResource BoolToVis}}" />
+                    <Border Margin="68,12,0,0" CornerRadius="10" Background="{StaticResource Plexi.RedSoftBrush}" Padding="14,10"
+                            Visibility="{Binding VddError, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="ErrorCircle24" FontSize="16" Foreground="{StaticResource Plexi.RedBrush}" />
+                            <TextBlock Text="{Binding VddError}" Margin="9,0,0,0" TextWrapping="Wrap" Foreground="#FFB3C1" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="DETAILS" Style="{StaticResource Plexi.SectionHeader}" />
+            <Border Style="{StaticResource Plexi.Card}" Padding="0">
+                <StackPanel>
+                    <Grid Margin="22,16">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="210" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="Virtual monitor" Foreground="{StaticResource Plexi.TextSecondaryBrush}" />
+                        <TextBlock Grid.Column="1" Text="{Binding VddMonitors}" FontWeight="SemiBold" />
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource Plexi.SubtleBrush}" />
+                    <Grid Margin="22,16">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="210" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="Display modes" Foreground="{StaticResource Plexi.TextSecondaryBrush}" />
+                        <TextBlock Grid.Column="1" Text="{Binding VddModes}" TextWrapping="Wrap"
+                                   ToolTip="Common tablet resolutions at 60 Hz. The list is read when the virtual display starts and is kept small on purpose: too many modes stop the virtual monitor from starting." />
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource Plexi.SubtleBrush}" />
+                    <Grid Margin="22,16">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="210" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="Driver settings file" Foreground="{StaticResource Plexi.TextSecondaryBrush}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding VddSettingsPath}" FontFamily="Cascadia Mono, Consolas" FontSize="12.5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        <Button Grid.Column="2" Style="{StaticResource Plexi.GhostButton}" Content="Open folder" Command="{Binding OpenVddSettingsCommand}" />
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource Plexi.SubtleBrush}" />
+                    <Grid Margin="22,16">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="210" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="Device instance" Foreground="{StaticResource Plexi.TextSecondaryBrush}" />
+                        <TextBlock Grid.Column="1" FontFamily="Cascadia Mono, Consolas" FontSize="12.5">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="{Binding VddInstance}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding VddInstance}" Value="">
+                                            <Setter Property="Text" Value="—" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource Plexi.SubtleBrush}" />
+                    <Grid Margin="22,16">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="210" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="Driver" Foreground="{StaticResource Plexi.TextSecondaryBrush}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" VerticalAlignment="Center" TextWrapping="Wrap">
+                            <Run Text="Virtual Display Driver (IddCx)" FontWeight="SemiBold" /><Run Text="  ·  signed · MIT License · by VirtualDrivers" Foreground="{StaticResource Plexi.TextTertiaryBrush}" />
+                        </TextBlock>
+                        <Button Grid.Column="2" Style="{StaticResource Plexi.GhostButton}" Content="Project page"
+                                Command="{Binding OpenUrlCommand}" CommandParameter="https://github.com/VirtualDrivers/Virtual-Display-Driver" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="DISPLAY MODES" Style="{StaticResource Plexi.SectionHeader}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Plexi.Card}">
+                    <StackPanel>
+                        <ui:SymbolIcon Symbol="ArrowSwap24" FontSize="22" Foreground="{StaticResource Plexi.CyanBrush}" HorizontalAlignment="Left" />
+                        <TextBlock Text="Extend" Style="{StaticResource Plexi.CardTitle}" Margin="0,10,0,4" />
+                        <TextBlock Style="{StaticResource Plexi.Body}" Text="The tablet becomes an extra monitor beside your screen. Your main monitor keeps the taskbar and Start menu." />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Plexi.Card}">
+                    <StackPanel>
+                        <ui:SymbolIcon Symbol="Star24" FontSize="22" Foreground="#B9A3FF" HorizontalAlignment="Left" />
+                        <TextBlock Text="Primary" Style="{StaticResource Plexi.CardTitle}" Margin="0,10,0,4" />
+                        <TextBlock Style="{StaticResource Plexi.Body}" Text="The tablet becomes Windows' main display: taskbar, Start and new windows open there. Your monitor stays on beside it, and your original main display is restored when the tablet disconnects — or at the next start if PlexiChore was closed unexpectedly." />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="4" Style="{StaticResource Plexi.Card}">
+                    <StackPanel>
+                        <ui:SymbolIcon Symbol="Copy24" FontSize="22" Foreground="{StaticResource Plexi.GreenBrush}" HorizontalAlignment="Left" />
+                        <TextBlock Text="Mirror" Style="{StaticResource Plexi.CardTitle}" Margin="0,10,0,4" />
+                        <TextBlock Style="{StaticResource Plexi.Body}" Text="The tablet shows one of your existing monitors. No driver needed — also used automatically when Extend or Primary is unavailable." />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <TextBlock Text="HOW IT WORKS" Style="{StaticResource Plexi.SectionHeader}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Plexi.Card}">
+                    <StackPanel>
+                        <ui:SymbolIcon Symbol="Tablet24" FontSize="22" Foreground="{StaticResource Plexi.CyanBrush}" HorizontalAlignment="Left" />
+                        <TextBlock Text="Tablet asks to extend" Style="{StaticResource Plexi.CardTitle}" Margin="0,10,0,4" />
+                        <TextBlock Style="{StaticResource Plexi.Body}" Text="A virtual monitor matching the tablet's resolution and refresh rate is plugged in on demand." />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Plexi.Card}">
+                    <StackPanel>
+                        <ui:SymbolIcon Symbol="ArrowSwap24" FontSize="22" Foreground="#B9A3FF" HorizontalAlignment="Left" />
+                        <TextBlock Text="Placed beside your screen" Style="{StaticResource Plexi.CardTitle}" Margin="0,10,0,4" />
+                        <TextBlock Style="{StaticResource Plexi.Body}" Text="It sits left, right, above or below your main monitor — whichever side the tablet chose." />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="4" Style="{StaticResource Plexi.Card}">
+                    <StackPanel>
+                        <ui:SymbolIcon Symbol="PlugDisconnected24" FontSize="22" Foreground="{StaticResource Plexi.GreenBrush}" HorizontalAlignment="Left" />
+                        <TextBlock Text="Gone when you disconnect" Style="{StaticResource Plexi.CardTitle}" Margin="0,10,0,4" />
+                        <TextBlock Style="{StaticResource Plexi.Body}" Text="Windows moves your apps back to the main screen as soon as the tablet leaves." />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,269 @@
+<UserControl x:Class="PlexiChore.App.Views.Pages.HomePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" PanningMode="VerticalOnly">
+        <StackPanel Margin="28,6,36,36" MaxWidth="1040">
+
+            <!-- ================= HERO ================= -->
+            <Border CornerRadius="24" Background="{StaticResource Plexi.HeroGradient}" BorderBrush="{StaticResource Plexi.HeroBorder}"
+                    BorderThickness="1" Padding="34,30" ClipToBounds="True">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel VerticalAlignment="Center">
+                        <!-- live pill -->
+                        <Border HorizontalAlignment="Left" CornerRadius="999" Padding="10,4,12,4"
+                                Background="{Binding HeroTone, Converter={StaticResource ToneSoftBrush}}">
+                            <StackPanel Orientation="Horizontal">
+                                <Grid Width="14" Height="14">
+                                    <Ellipse x:Name="Halo" Fill="{Binding HeroTone, Converter={StaticResource ToneBrush}}" Opacity="0.35"
+                                             RenderTransformOrigin="0.5,0.5">
+                                        <Ellipse.RenderTransform>
+                                            <ScaleTransform x:Name="HaloScale" ScaleX="0.6" ScaleY="0.6" />
+                                        </Ellipse.RenderTransform>
+                                        <Ellipse.Triggers>
+                                            <EventTrigger RoutedEvent="Loaded">
+                                                <BeginStoryboard>
+                                                    <Storyboard RepeatBehavior="Forever">
+                                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" From="0.6" To="1.25" Duration="0:0:1.6" />
+                                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" From="0.6" To="1.25" Duration="0:0:1.6" />
+                                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.55" To="0" Duration="0:0:1.6" />
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                        </Ellipse.Triggers>
+                                    </Ellipse>
+                                    <Ellipse Width="7" Height="7" Fill="{Binding HeroTone, Converter={StaticResource ToneBrush}}" />
+                                </Grid>
+                                <TextBlock Text="{Binding ServerPill}" Margin="7,0,0,0" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="{Binding HeroTone, Converter={StaticResource ToneBrush}}" />
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="{Binding HeroTitle}" Margin="0,16,0,0" FontFamily="{StaticResource Plexi.DisplayFont}"
+                                   FontSize="32" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="White" />
+                        <TextBlock Text="{Binding HeroSubtitle}" Margin="0,8,0,0" FontSize="14.5" TextWrapping="Wrap" MaxWidth="560"
+                                   HorizontalAlignment="Left" Foreground="#C9C3E0" LineHeight="21" />
+
+                        <WrapPanel Margin="0,20,0,0">
+                            <Border Style="{StaticResource Plexi.StatusChip}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="7" Height="7" Fill="{Binding UsbChipTone, Converter={StaticResource ToneBrush}}" />
+                                    <TextBlock Text="{Binding UsbChip}" Style="{StaticResource Plexi.BadgeText}" Margin="7,0,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Plexi.StatusChip}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="7" Height="7" Fill="{Binding WifiChipTone, Converter={StaticResource ToneBrush}}" />
+                                    <TextBlock Text="{Binding WifiChip}" Style="{StaticResource Plexi.BadgeText}" Margin="7,0,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Plexi.StatusChip}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="7" Height="7" Fill="{Binding ExtendChipTone, Converter={StaticResource ToneBrush}}" />
+                                    <TextBlock Text="{Binding ExtendChip}" Style="{StaticResource Plexi.BadgeText}" Margin="7,0,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </WrapPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="2,10,0,0">
+                            <ui:SymbolIcon Symbol="Desktop24" FontSize="14" Foreground="#8E88A8" />
+                            <TextBlock Margin="7,0,0,0" FontSize="12.5" Foreground="#8E88A8" VerticalAlignment="Center">
+                                <Run Text="{Binding HostName, Mode=OneWay}" /><Run Text="   " /><Run Text="{Binding IpAddresses, Mode=OneWay}" />
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- illustration: monitor + tablet -->
+                    <Canvas Grid.Column="1" Width="290" Height="196" Margin="24,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                        <Ellipse Canvas.Left="20" Canvas.Top="10" Width="260" Height="190" Opacity="0.55">
+                            <Ellipse.Fill>
+                                <RadialGradientBrush>
+                                    <GradientStop Color="#667C4DFF" Offset="0" />
+                                    <GradientStop Color="#0000E5FF" Offset="1" />
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                        </Ellipse>
+                        <!-- monitor -->
+                        <Border Canvas.Left="14" Canvas.Top="18" Width="176" Height="114" CornerRadius="12" BorderThickness="3"
+                                BorderBrush="#E6FFFFFF" Background="#33130E2E">
+                            <Border Margin="8" CornerRadius="6">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#557C4DFF" Offset="0" />
+                                        <GradientStop Color="#2200E5FF" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <StackPanel Margin="10,10,0,0">
+                                    <Border Width="64" Height="7" CornerRadius="3.5" Background="#55FFFFFF" HorizontalAlignment="Left" />
+                                    <Border Width="96" Height="7" CornerRadius="3.5" Background="#33FFFFFF" HorizontalAlignment="Left" Margin="0,7,0,0" />
+                                    <Border Width="44" Height="7" CornerRadius="3.5" Background="#33FFFFFF" HorizontalAlignment="Left" Margin="0,7,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </Border>
+                        <Border Canvas.Left="92" Canvas.Top="132" Width="20" Height="20" Background="#E6FFFFFF" />
+                        <Border Canvas.Left="66" Canvas.Top="150" Width="72" Height="10" CornerRadius="5" Background="#E6FFFFFF" />
+                        <!-- link dots -->
+                        <Ellipse Canvas.Left="196" Canvas.Top="70" Width="6" Height="6" Fill="#AA00E5FF" />
+                        <Ellipse Canvas.Left="208" Canvas.Top="70" Width="6" Height="6" Fill="#7700E5FF" />
+                        <!-- tablet -->
+                        <Border Canvas.Left="150" Canvas.Top="70" Width="132" Height="92" CornerRadius="14" Background="#F2FFFFFF">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="24" ShadowDepth="6" Opacity="0.45" Color="#140A33" />
+                            </Border.Effect>
+                            <Border Margin="7" CornerRadius="9" Background="{StaticResource Plexi.AccentGradient}">
+                                <Grid>
+                                    <Border Width="40" Height="6" CornerRadius="3" Background="#66FFFFFF" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" />
+                                    <Border Width="62" Height="6" CornerRadius="3" Background="#44FFFFFF" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,22,0,0" />
+                                    <ui:SymbolIcon Symbol="Pen24" FontSize="20" Foreground="#CCFFFFFF" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,8" />
+                                </Grid>
+                            </Border>
+                        </Border>
+                    </Canvas>
+                </Grid>
+            </Border>
+
+            <!-- ================= SESSIONS ================= -->
+            <TextBlock Text="CONNECTED TABLETS" Style="{StaticResource Plexi.SectionHeader}" />
+
+            <ItemsControl ItemsSource="{Binding Sessions}" Visibility="{Binding HasSessions, Converter={StaticResource BoolToVis}}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Plexi.Card}" Margin="0,0,0,12">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource Plexi.IconBubble}" Background="{StaticResource Plexi.AccentGradient}">
+                                        <ui:SymbolIcon Symbol="Tablet24" FontSize="22" Foreground="White" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding DeviceName}" FontSize="16.5" FontWeight="SemiBold" />
+                                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                            <Border Style="{StaticResource Plexi.Badge}" Background="{StaticResource Plexi.CyanSoftBrush}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <ui:SymbolIcon Symbol="{Binding TransportIcon}" FontSize="12" Foreground="{StaticResource Plexi.CyanBrush}" />
+                                                    <TextBlock Text="{Binding TransportText}" Style="{StaticResource Plexi.BadgeText}" Foreground="{StaticResource Plexi.CyanBrush}" Margin="5,0,0,0" />
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Style="{StaticResource Plexi.Badge}" Background="{StaticResource Plexi.VioletSoftBrush}">
+                                                <TextBlock Text="{Binding ModeText}" Style="{StaticResource Plexi.BadgeText}" Foreground="#B9A3FF" />
+                                            </Border>
+                                            <Border Style="{StaticResource Plexi.Badge}" Background="{StaticResource Plexi.VioletSoftBrush}"
+                                                    Visibility="{Binding ScaleText, Converter={StaticResource BoolToVis}}"
+                                                    ToolTip="Windows display scale of the tablet's virtual monitor (text and pointer size). Change it on the tablet: Settings › Display size.">
+                                                <TextBlock Text="{Binding ScaleText}" Style="{StaticResource Plexi.BadgeText}" Foreground="#B9A3FF" />
+                                            </Border>
+                                            <TextBlock Style="{StaticResource Plexi.Caption}" VerticalAlignment="Center" Margin="4,0,0,0">
+                                                <Run Text="{Binding Model, Mode=OneWay}" /><Run Text=" · " /><Run Text="{Binding CodecText, Mode=OneWay}" /><Run Text=" · connected " /><Run Text="{Binding DurationText, Mode=OneWay}" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Style="{StaticResource Plexi.DangerButton}" VerticalAlignment="Center"
+                                            Command="{Binding DataContext.DisconnectCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <ui:SymbolIcon Symbol="PlugDisconnected24" FontSize="15" />
+                                            <TextBlock Text="Disconnect" Margin="7,0,0,0" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+
+                                <UniformGrid Columns="5" Margin="0,18,0,0">
+                                    <Border Style="{StaticResource Plexi.Tile}" Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="RESOLUTION" Style="{StaticResource Plexi.StatLabel}" />
+                                            <TextBlock Text="{Binding Resolution}" Style="{StaticResource Plexi.StatValue}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource Plexi.Tile}" Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="FRAME RATE" Style="{StaticResource Plexi.StatLabel}" />
+                                            <TextBlock Style="{StaticResource Plexi.StatValue}">
+                                                <Run Text="{Binding FpsText, Mode=OneWay}" /><Run Text=" / " FontSize="13" Foreground="{StaticResource Plexi.TextTertiaryBrush}" /><Run Text="{Binding TargetFps, Mode=OneWay}" FontSize="13" Foreground="{StaticResource Plexi.TextTertiaryBrush}" /><Run Text=" fps" FontSize="13" Foreground="{StaticResource Plexi.TextTertiaryBrush}" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource Plexi.Tile}" Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="BITRATE" Style="{StaticResource Plexi.StatLabel}" />
+                                            <TextBlock Text="{Binding BitrateText}" Style="{StaticResource Plexi.StatValue}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource Plexi.Tile}" Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="LATENCY (RTT)" Style="{StaticResource Plexi.StatLabel}" />
+                                            <TextBlock Text="{Binding RttText}" Style="{StaticResource Plexi.StatValue}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource Plexi.Tile}">
+                                        <StackPanel>
+                                            <TextBlock Text="ENCODE" Style="{StaticResource Plexi.StatLabel}" />
+                                            <TextBlock Text="{Binding EncodeText}" Style="{StaticResource Plexi.StatValue}" />
+                                        </StackPanel>
+                                    </Border>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- empty state: how to connect -->
+            <Grid Visibility="{Binding HasSessions, Converter={StaticResource InvBoolToVis}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="14" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Plexi.Card}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Border Style="{StaticResource Plexi.IconBubble}" Background="{StaticResource Plexi.CyanSoftBrush}" Width="40" Height="40">
+                                <ui:SymbolIcon Symbol="PlugConnected24" FontSize="20" Foreground="{StaticResource Plexi.CyanBrush}" />
+                            </Border>
+                            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Connect with USB" Style="{StaticResource Plexi.CardTitle}" />
+                                <TextBlock Text="Lowest latency · charges while you work" Style="{StaticResource Plexi.Caption}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Plexi.Body}" Margin="2,16,0,0">
+                            <Run Text="1" FontWeight="Bold" Foreground="{StaticResource Plexi.CyanBrush}" /><Run Text="   Turn on USB debugging in the tablet's Developer options." />
+                            <LineBreak /><Run Text="2" FontWeight="Bold" Foreground="{StaticResource Plexi.CyanBrush}" /><Run Text="   Plug it in and tap Allow on the debugging prompt." />
+                            <LineBreak /><Run Text="3" FontWeight="Bold" Foreground="{StaticResource Plexi.CyanBrush}" /><Run Text="   Open PlexiChore on the tablet — this PC shows up as USB." />
+                        </TextBlock>
+                        <Button Style="{StaticResource Plexi.GhostButton}" HorizontalAlignment="Left" Margin="-6,12,0,0"
+                                Command="{Binding NavigateCommand}" CommandParameter="2" Content="Check USB status  →" />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Plexi.Card}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Border Style="{StaticResource Plexi.IconBubble}" Width="40" Height="40">
+                                <ui:SymbolIcon Symbol="Wifi124" FontSize="20" Foreground="#B9A3FF" />
+                            </Border>
+                            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Connect over Wi‑Fi" Style="{StaticResource Plexi.CardTitle}" />
+                                <TextBlock Text="No cable · same network" Style="{StaticResource Plexi.Caption}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Plexi.Body}" Margin="2,16,0,0">
+                            <Run Text="1" FontWeight="Bold" Foreground="#B9A3FF" /><Run Text="   Put the tablet on the same Wi‑Fi as this PC." />
+                            <LineBreak /><Run Text="2" FontWeight="Bold" Foreground="#B9A3FF" /><Run Text="   Open PlexiChore and pick " /><Run Text="{Binding HostName, Mode=OneWay}" FontWeight="SemiBold" Foreground="{StaticResource Plexi.TextBrush}" /><Run Text="." />
+                            <LineBreak /><Run Text="3" FontWeight="Bold" Foreground="#B9A3FF" /><Run Text="   Confirm the 4‑digit code here the first time." />
+                        </TextBlock>
+                        <Button Style="{StaticResource Plexi.GhostButton}" HorizontalAlignment="Left" Margin="-6,12,0,0"
+                                Command="{Binding NavigateCommand}" CommandParameter="3" Content="Firewall &amp; pairing settings  →" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

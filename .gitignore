@@ -1,0 +1,39 @@
+# --- shared ---
+.DS_Store
+Thumbs.db
+*.log
+*.keystore
+*.jks
+keystore.properties
+
+# --- Android (PlexiChore/) ---
+local.properties
+.gradle/
+.kotlin/
+.idea/
+*.iml
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# --- .NET (PlexiChore-Desktop/) ---
+bin/
+obj/
+dist/
+artifacts/
+TestResults/
+.vs/
+*.user
+# Benchmark run folders contain desktop screenshots; keep only the summary table
+PlexiChore-Desktop/tools/Bench/results/*
+!PlexiChore-Desktop/tools/Bench/results/results.md
+
+# --- Swift (PlexiChore-Mac/) ---
+.build/
+.swiftpm/
+DerivedData/
+*.xcodeproj/xcuserdata/
+Package.resolved
+PlexiChore-Desktop/tools/EngineTestClient/*.h264
+PlexiChore-Desktop/tools/EngineTestClient/*.jpg

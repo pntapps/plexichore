@@ -1,0 +1,69 @@
+<UserControl x:Class="PlexiChore.App.Views.Pages.AboutPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" PanningMode="VerticalOnly">
+        <StackPanel Margin="28,6,36,36" MaxWidth="1040">
+            <Border CornerRadius="24" Background="{StaticResource Plexi.HeroGradient}" BorderBrush="{StaticResource Plexi.HeroBorder}" BorderThickness="1" Padding="32,28">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="/Assets/logo-256.png" Width="88" Height="88" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <StackPanel Margin="24,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="PlexiChore Desktop" FontFamily="{StaticResource Plexi.DisplayFont}" FontSize="28" FontWeight="SemiBold" Foreground="White" />
+                        <TextBlock Margin="0,4,0,0" Foreground="#C9C3E0" FontSize="14">
+                            <Run Text="Version" /> <Run Text="{Binding Version, Mode=OneWay}" /><Run Text="  ·  Turn your Android tablet into a portable monitor." />
+                        </TextBlock>
+                        <TextBlock Margin="0,10,0,0" Style="{StaticResource Plexi.Caption}" Foreground="#8E88A8">
+                            <Run Text="Host ID " /><Run Text="{Binding HostId, Mode=OneWay}" FontFamily="Cascadia Mono, Consolas" />
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="OPEN-SOURCE COMPONENTS" Style="{StaticResource Plexi.SectionHeader}" />
+            <Border Style="{StaticResource Plexi.Card}" Padding="0">
+                <ItemsControl>
+                    <ItemsControl.Resources>
+                        <Style x:Key="Row" TargetType="Grid">
+                            <Setter Property="Margin" Value="22,14" />
+                        </Style>
+                    </ItemsControl.Resources>
+                    <Grid Style="{StaticResource Row}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Virtual Display Driver" FontWeight="SemiBold" />
+                            <TextBlock Text="Signed IddCx virtual monitor driver by VirtualDrivers (MikeTheTech, Bud and contributors) — MIT License" Style="{StaticResource Plexi.Caption}" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Style="{StaticResource Plexi.GhostButton}" Content="GitHub" Command="{Binding OpenUrlCommand}" CommandParameter="https://github.com/VirtualDrivers/Virtual-Display-Driver" />
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource Plexi.SubtleBrush}" />
+                    <Grid Style="{StaticResource Row}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="nefcon" FontWeight="SemiBold" />
+                            <TextBlock Text="Device-node installer used during driver setup, by Benjamin Höglinger-Stelzer (nefarius) — BSD-3-Clause" Style="{StaticResource Plexi.Caption}" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Style="{StaticResource Plexi.GhostButton}" Content="GitHub" Command="{Binding OpenUrlCommand}" CommandParameter="https://github.com/nefarius/nefcon" />
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource Plexi.SubtleBrush}" />
+                    <Grid Style="{StaticResource Row}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Android SDK Platform-Tools (adb)" FontWeight="SemiBold" />
+                            <TextBlock Text="Downloaded on demand from Google under the Android SDK license" Style="{StaticResource Plexi.Caption}" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Style="{StaticResource Plexi.GhostButton}" Content="Website" Command="{Binding OpenUrlCommand}" CommandParameter="https://developer.android.com/tools/releases/platform-tools" />
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource Plexi.SubtleBrush}" />
+                    <Grid Style="{StaticResource Row}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="WPF UI · H.NotifyIcon · CommunityToolkit.Mvvm" FontWeight="SemiBold" />
+                            <TextBlock Text="Fluent controls, tray icon and MVVM helpers — MIT License" Style="{StaticResource Plexi.Caption}" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Style="{StaticResource Plexi.GhostButton}" Content="WPF UI" Command="{Binding OpenUrlCommand}" CommandParameter="https://github.com/lepoco/wpfui" />
+                    </Grid>
+                </ItemsControl>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

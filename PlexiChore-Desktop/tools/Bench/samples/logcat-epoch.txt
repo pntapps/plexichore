@@ -1,0 +1,4 @@
+--------- beginning of main
+1760961089.100000  9001  9001 I PlexiDisplay: Debug connect to 127.0.0.1 with StreamSettings(codec=h264)
+1760961089.900123  9001  9100 I PlexiH264: Started c2.qti.avc.decoder 2560x1600@60
+1760961090.012345  9001  9100 D PlexiH264: Output format: {width=2560, height=1600}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base app theme: dark window so nothing flashes white before Compose draws. -->
+    <style name="Theme.PlexiChore" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/plexi_bg</item>
+        <item name="android:colorBackground">@color/plexi_bg</item>
+        <item name="android:colorAccent">@color/plexi_violet</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- Splash (androidx core-splashscreen). Icon = adaptive launcher icon. -->
+    <style name="Theme.PlexiChore.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/plexi_bg</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.PlexiChore</item>
+    </style>
+</resources>

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- PlexiChore smoothness benchmark harness (tools/Bench/README in bench.ps1 header). Standalone: not in PlexiChore.slnx. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);WFO0003</NoWarn> <!-- PMv2 stays in the manifest: the process must be DPI aware before any console-mode SetCursorPos -->
+    <RootNamespace>PlexiBench</RootNamespace>
+    <AssemblyName>Bench</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="samples\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

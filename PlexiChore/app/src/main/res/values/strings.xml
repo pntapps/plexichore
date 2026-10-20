@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">PlexiChore</string>
+    <!-- TODO: replace with the real download page once published -->
+    <string name="desktop_app_url" translatable="false">pntapps.com/plexichore</string>
+</resources>

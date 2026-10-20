@@ -1,0 +1,32 @@
+20:17:57.644 [INF] Engine: Virtual display reused (attached already): \\.\DISPLAY8 {X=1920,Y=0,Width=2560,Height=1600}
+20:17:57.644 [INF] Engine: Virtual display attached (extend): \\.\DISPLAY8 {X=1920,Y=0,Width=2560,Height=1600}
+20:18:08.817 [DBG] Engine: perf: 24.6 fps (ptrOnly 29, max gap 32.7 ms) compose 0.01 convert 0.00 submit 15.15 ms | encoder wait 15.14 latency 17.67 max 32.56 busy 0 qvs 33 real 31
+20:18:08.817 [WRN] Engine: Encoder slow at 1920x1200 (17.7 ms/frame, 25 fps); restarting the encoder
+20:18:32.938 [DBG] Engine: Encoder busy, frame dropped
+20:18:32.938 [DBG] Engine: perf: 41.5 fps (ptrOnly 2, max gap 166.8 ms) compose 0.02 convert 0.01 submit 3.21 ms | encoder wait 0.25 latency 17.43 max 173.65 busy 1 qvs 33 real 48
+20:18:32.938 [INF] Engine: Encoder too slow (17.4 ms/frame > 16.7 ms): switched to the fastest preset
+20:23:30.249 [INF] Engine: CONFIG -> Galaxy Tab S8: h264 2560x1600@60 extend from \\.\DISPLAY8 {X=1920,Y=0,Width=2560,Height=1600} encoder=hw:NVIDIA H.264 Encoder MFT (resize)
+20:25:01.755 [INF] Engine: Connection from [::ffff:127.0.0.1]:56547 (USB/loopback)
+20:25:01.755 [INF] Engine: HELLO from Galaxy Tab S8 (SM-X700) 2560x1600 via USB [::ffff:127.0.0.1]:56547: mode=primary codec=h264 fps=60 20000kbps
+20:25:01.755 [INF] VirtualDisplayDriverProvider: Attach requested 2560x1600@60 right as PRIMARY
+20:25:01.766 [INF] VirtualDisplayDriverProvider: Saved primary restore record: primary \\.\DISPLAY1, 1 monitor(s)
+20:25:01.821 [INF] VirtualDisplayDriverProvider: Primary switch plan: \\.\DISPLAY1@-1920,0, \\.\DISPLAY8@0,0*
+20:25:01.968 [INF] VirtualDisplayDriverProvider: Virtual monitor \\.\DISPLAY8 attached at {X=0,Y=0,Width=2560,Height=1600}
+20:25:01.968 [INF] Engine: Virtual display attached (primary): \\.\DISPLAY8 {X=0,Y=0,Width=2560,Height=1600}
+20:25:01.978 [INF] VirtualDisplayDriverProvider: Display scale \\.\DISPLAY8: now 200% (recommended 125%, allowed 100-250%), wanted 200% -> 200%
+20:25:01.979 [INF] Engine: Display scale \\.\DISPLAY8: requested auto (densityDpi 340) -> target 200% -> applied 200%
+20:25:01.985 [DBG] Engine: capture: output found after 1 ms
+20:25:02.030 [DBG] Engine: capture: D3D11 device after 45 ms
+20:25:02.370 [INF] Engine: Capture: \\.\DISPLAY8 2560x1600 at (0,0) on NVIDIA GeForce GT 710
+20:25:02.370 [DBG] Engine: pipeline: capture ready after 385 ms
+20:25:02.408 [DBG] Engine: ICodecAPI.SetValue 8d390aac-dc5c-4200-b57f-814d04babab2 -> 0x80070057
+20:25:02.441 [INF] Engine: H.264 encoder: hw:NVIDIA H.264 Encoder MFT (hardware, async, input=D3D11) 2560x1600@60 20000 kbps, forceKeyFrame=True
+20:25:02.441 [DBG] Engine: pipeline: encoder ready after 456 ms
+20:25:02.443 [INF] Engine: CONFIG -> Galaxy Tab S8: h264 2560x1600@60 primary from \\.\DISPLAY8 {X=0,Y=0,Width=2560,Height=1600} encoder=hw:NVIDIA H.264 Encoder MFT (hello)
+20:25:02.443 [INF] Engine: Cursor: using DDA pointer shapes (64x64 type 2) on \\.\DISPLAY8
+20:25:02.651 [INF] Engine: Cursor overlay: GPU
+20:25:02.652 [DBG] Engine: cursor: dda seen=True visible=True pos=(1280,800) drawn=True at (1280,800) 64x64
+20:25:02.653 [DBG] Engine: perf: 0.0 fps (ptrOnly 0, max gap 224.8 ms) compose 0.97 convert 0.05 submit 1.48 ms | encoder wait 0.00 latency 0.00 max 0.00 busy 0 qvs 33 real 0
+20:25:30.033 [DBG] Engine: perf: 4.0 fps (ptrOnly 0, max gap 32.4 ms) compose 0.07 convert 0.02 submit 0.39 ms | encoder wait 0.36 latency 32.09 max 32.57 busy 0 qvs 33 real 2
+20:26:00.100 [INF] Engine: extend mode unavailable, using mirror
+20:26:01.000 [INF] Engine: CONFIG -> Galaxy Tab S8: h264 1920x1200@60 extend from \\.\DISPLAY8 {X=1920,Y=0,Width=2560,Height=1600} encoder=hw:NVIDIA H.264 Encoder MFT (adapt)

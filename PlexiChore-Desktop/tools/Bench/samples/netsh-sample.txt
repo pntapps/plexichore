@@ -1,0 +1,20 @@
+
+Rule Name:                            plexichore.exe
+----------------------------------------------------------------------
+Enabled:                              Yes
+Direction:                            In
+Profiles:                             Private
+Protocol:                             TCP
+LocalPort:                            Any
+Program:                              C:\users\user\androidstudioprojects\plexichore-desktop\dist\plexichore.exe
+Action:                               Allow
+
+Rule Name:                            plexichore.exe
+----------------------------------------------------------------------
+Enabled:                              Yes
+Direction:                            In
+Profiles:                             Public
+Protocol:                             TCP
+LocalPort:                            Any
+Program:                              C:\users\user\androidstudioprojects\plexichore-desktop\dist\plexichore.exe
+Action:                               Block

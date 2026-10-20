@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>PlexiChore</string>
+	<key>CFBundleExecutable</key>
+	<string>PlexiChore</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.pntapps.plexichore.mac</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>PlexiChore</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>13.0</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>© PNT Apps</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>PlexiChore captures the display shown on your tablet so it can be streamed to it.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>PlexiChore announces this Mac on your local network and accepts connections from your tablet over Wi-Fi.</string>
+	<key>NSAccessibilityUsageDescription</key>
+	<string>PlexiChore turns touches and pen input from your tablet into pointer and keyboard events.</string>
+</dict>
+</plist>

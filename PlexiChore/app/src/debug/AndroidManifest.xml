@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-only entry point for connecting without the home UI:
+  adb shell am start -n com.pntapps.plexichore/.display.DebugDisplay -\-es host 127.0.0.1 [-\-es codec mjpeg]
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity-alias
+            android:name=".display.DebugDisplay"
+            android:exported="true"
+            android:targetActivity=".display.DisplayActivity" />
+    </application>
+</manifest>

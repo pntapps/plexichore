@@ -1,0 +1,4 @@
+com.pntapps.plexichore/com.pntapps.plexichore.display.DisplayActivity#0
+SurfaceView[com.pntapps.plexichore/com.pntapps.plexichore.display.DisplayActivity]#0
+SurfaceView[com.pntapps.plexichore/com.pntapps.plexichore.display.DisplayActivity](BLAST)#1
+Background for SurfaceView[com.pntapps.plexichore/com.pntapps.plexichore.display.DisplayActivity]#0
