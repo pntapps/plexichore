@@ -76,6 +76,8 @@ internal fun DisplayOverlay(
     onSetScale: (Int) -> Unit = {},
     /** Tablet held portrait while the host streams landscape (no portrait mode on the PC). */
     orientationHint: Boolean = false,
+    keyboard: KeyboardOverlayState = KeyboardOverlayState(),
+    keyboardActions: KeyboardActions = KeyboardActions.None,
 ) {
     val streaming = state as? ConnectionState.Streaming
     // Safe area: in true immersive mode the hidden bars report 0, so this only keeps controls clear
@@ -112,8 +114,27 @@ internal fun DisplayOverlay(
                 onSetScale = onSetScale,
                 iconOnly = compact,
                 showHost = maxWidth >= 420.dp,
+                keyboardOpen = keyboard.open,
+                onToggleKeyboard = keyboardActions::toggle,
             )
         }
+
+        if (streaming != null && keyboard.open) {
+            ReportRegion("kbRow", onRegion)
+            ExtraKeysRow(
+                state = keyboard,
+                hostOs = streaming.config.hostOs,
+                actions = keyboardActions,
+                modifier = Modifier
+                    .align(if (keyboard.keysAtTop) Alignment.TopCenter else Alignment.BottomCenter)
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .padding(top = if (keyboard.keysAtTop && controlsVisible) 68.dp else 0.dp)
+                    .widthIn(max = pillMax)
+                    .onGloballyPositioned { onRegion("kbRow", it.boundsInRoot()) },
+            )
+        }
+
+        if (streaming != null && keyboard.showBubble) KeyboardBubble(keyboard, keyboardActions, onRegion)
 
         AnimatedVisibility(
             visible = streaming != null && !controlsVisible && (showHint || orientationHint),
@@ -160,6 +181,8 @@ private fun ControlPill(
     /** Small windows / large font: buttons become 48dp icons (labels stay as content descriptions). */
     iconOnly: Boolean = false,
     showHost: Boolean = true,
+    keyboardOpen: Boolean = false,
+    onToggleKeyboard: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
     Surface(
@@ -223,6 +246,16 @@ private fun ControlPill(
                 IconButton(onClick = { larger?.let(onSetScale) }, enabled = larger != null) {
                     Icon(OverlayIcons.Plus, contentDescription = "Larger text and windows")
                 }
+            }
+            // Keyboard: always icon-only (the Keyboard glyph is unambiguous), keeps the pill narrow on phones.
+            IconButton(
+                onClick = onToggleKeyboard,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = if (keyboardOpen) scheme.primary.copy(alpha = 0.18f) else Color.Transparent,
+                    contentColor = if (keyboardOpen) scheme.primary else scheme.onSurface,
+                ),
+            ) {
+                Icon(OverlayIcons.Keyboard, contentDescription = if (keyboardOpen) "Hide keyboard" else "Show keyboard", modifier = Modifier.size(22.dp))
             }
             PillButton(
                 icon = OverlayIcons.Stats,
@@ -355,6 +388,22 @@ internal object OverlayIcons {
     val Close = icon("Close", "M19,6.41L17.59,5 12,10.59 6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 12,13.41 17.59,19 19,17.59 13.41,12z")
     val Stats = icon("Stats", "M10,20h4V4h-4v16zm-6,0h4v-8H4v8zM16,9v11h4V9h-4z")
     val Size = icon("Size", "M9,4v3h5v12h3V7h5V4H9zM3,12h3v7h3v-7h3V9H3v3z")
+    val Keyboard = icon(
+        "Keyboard",
+        "M20,5H4C2.9,5 2.01,5.9 2.01,7L2,17c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V7C22,5.9 21.1,5 20,5zM11,8h2v2h-2V8zM11,11h2v2h-2v-2z" +
+            "M8,8h2v2H8V8zM8,11h2v2H8v-2zM7,13H5v-2h2v2zM7,10H5V8h2v2zM16,17H8v-2h8v2zM16,13h-2v-2h2v2zM16,10h-2V8h2v2z" +
+            "M19,13h-2v-2h2v2zM19,10h-2V8h2v2z",
+    )
+    val KeyboardHide = icon(
+        "KeyboardHide",
+        "M20,3H4C2.9,3 2.01,3.9 2.01,5L2,15c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V5C22,3.9 21.1,3 20,3zM11,6h2v2h-2V6zM11,9h2v2h-2V9z" +
+            "M8,6h2v2H8V6zM8,9h2v2H8V9zM7,11H5V9h2v2zM7,8H5V6h2v2zM16,15H8v-2h8v2zM16,11h-2V9h2v2zM16,8h-2V6h2v2zM19,11h-2V9h2v2z" +
+            "M19,8h-2V6h2v2zM12,23l4,-4H8l4,4z",
+    )
+    val ArrowLeft = icon("ArrowLeft", "M20,11H7.83l5.59,-5.59L12,4l-8,8 8,8 1.41,-1.41L7.83,13H20v-2z")
+    val ArrowRight = icon("ArrowRight", "M12,4l-1.41,1.41L16.17,11H4v2h12.17l-5.58,5.59L12,20l8,-8z")
+    val ArrowUp = icon("ArrowUp", "M4,12l1.41,1.41L11,7.83V20h2V7.83l5.58,5.59L20,12l-8,-8 -8,8z")
+    val ArrowDown = icon("ArrowDown", "M20,12l-1.41,-1.41L13,16.17V4h-2v12.17l-5.58,-5.59L4,12l8,8 8,-8z")
     val Minus = icon("Minus", "M19,13H5v-2h14v2z")
     val Plus = icon("Plus", "M19,13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z")
     val Mouse = icon(

@@ -37,6 +37,7 @@ import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.Cable
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.FormatSize
 import androidx.compose.material.icons.rounded.Laptop
@@ -213,6 +214,7 @@ private fun StreamingInfo() {
         Trouble(Icons.Rounded.TouchApp, "Show the controls", "Swipe down from the top edge or tap with three fingers.")
         Trouble(Icons.Rounded.FormatSize, "Text too small or large", "Use − / + in the controls (or Settings › Display size). The screen blanks for about a second while it resizes.")
         Trouble(Icons.Rounded.Mouse, "Touch, Mouse or Input off", "Tap the input button in the controls to switch between them.")
+        Trouble(Icons.Rounded.Keyboard, "Type on the computer", "Tap the keyboard button (floating, or in the controls). Keys above the keyboard add Esc, Tab, Ctrl, Alt, ⌘/Win, arrows and Delete — tap Ctrl, Alt or ⌘/Win once for the next key, twice to keep it on. A connected keyboard works too.")
         Trouble(Icons.Rounded.Close, "Disconnect", "Tap × in the controls. Your computer's screens go back to normal.", last = true)
     }
 }

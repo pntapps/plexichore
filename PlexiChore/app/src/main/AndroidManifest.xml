@@ -53,6 +53,7 @@
             android:launchMode="singleTop"
             android:resizeableActivity="true"
             android:screenOrientation="sensorLandscape"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
             android:theme="@style/Theme.PlexiChore.Display" />
 
         <service

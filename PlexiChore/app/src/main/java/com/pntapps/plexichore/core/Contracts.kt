@@ -44,6 +44,8 @@ data class StreamSettings(
     val scalePercent: Int = 0,
     /** Additive: physical path as the host sees it: "usb-cable", "usb-wireless-adb" (adb reverse over wireless debugging), "wifi"; "" = unknown. */
     val link: String = "",
+    /** Additive, local only: floating keyboard button on the stream screen. */
+    val showKeyboardButton: Boolean = true,
 )
 
 sealed interface ConnectionState {
@@ -92,4 +94,10 @@ interface PlexiConnection {
     fun connectManual(ip: String, port: Int = 47800, settings: StreamSettings)
     fun updateSettings(settings: StreamSettings)  // live, sends SETTINGS
     fun disconnect()
+
+    /**
+     * Additive: sends a KEY message (PROTOCOL.md 0x05) while streaming. [action] "down" | "up",
+     * [keyCode] an Android `KeyEvent.KEYCODE_*`, [text] typed as Unicode by the host on "down" (keyCode ignored).
+     */
+    fun sendKey(action: String, keyCode: Int, text: String? = null) {}
 }

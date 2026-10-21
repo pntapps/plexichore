@@ -360,6 +360,10 @@ private fun BehaviourCard(s: StreamSettings, update: ((StreamSettings) -> Stream
         SettingRow("Stats overlay", "Show FPS, latency and bitrate on the display") {
             PlexiSwitch(s.showStatsOverlay) { v -> update { it.copy(showStatsOverlay = v) } }
         }
+        Spacer(Modifier.height(16.dp)); Hairline(); Spacer(Modifier.height(16.dp))
+        SettingRow("Keyboard button on screen", "A small floating button that opens the keyboard. It is also in the controls") {
+            PlexiSwitch(s.showKeyboardButton) { v -> update { it.copy(showKeyboardButton = v) } }
+        }
     }
 }
 

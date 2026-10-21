@@ -50,6 +50,10 @@ internal object Protocol {
     fun pingFrame(timeMicros: Long): ByteArray =
         frame(PING, ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN).putLong(timeMicros).array())
 
+    /** KEY (0x05): `{"action":"down|up","keyCode":n[,"text":"…"]}`. */
+    fun keyFrame(action: String, keyCode: Int, text: String?): ByteArray =
+        frame(KEY, JSONObject().put("action", action).put("keyCode", keyCode).apply { if (!text.isNullOrEmpty()) put("text", text) })
+
     fun byeFrame(reason: String): ByteArray = frame(BYE, reason.toByteArray(Charsets.UTF_8))
 
     val EMPTY = ByteArray(0)

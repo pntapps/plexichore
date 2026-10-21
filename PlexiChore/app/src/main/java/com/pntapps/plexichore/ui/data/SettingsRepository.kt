@@ -33,6 +33,14 @@ data class AppPreferences(
     val demoMode: Boolean = false,
 )
 
+/** Where the floating keyboard button sits: snapped to the left or right edge, [yFraction] of the free height. */
+data class KeyboardBubblePos(val left: Boolean = false, val yFraction: Float = DEFAULT_Y) {
+    companion object {
+        /** Bottom-right but clear of the corner (taskbar clock / Dock) by default. */
+        const val DEFAULT_Y = 0.78f
+    }
+}
+
 class SettingsRepository private constructor(private val store: DataStore<Preferences>) {
 
     private object K {
@@ -53,6 +61,9 @@ class SettingsRepository private constructor(private val store: DataStore<Prefer
         val onboarding = booleanPreferencesKey("onboarding_done")
         val lastIp = stringPreferencesKey("last_manual_ip")
         val demo = booleanPreferencesKey("demo_mode")
+        val kbButton = booleanPreferencesKey("keyboard_button")
+        fun bubbleY(landscape: Boolean) = floatPreferencesKey(if (landscape) "kb_bubble_land_y" else "kb_bubble_port_y")
+        fun bubbleLeft(landscape: Boolean) = booleanPreferencesKey(if (landscape) "kb_bubble_land_left" else "kb_bubble_port_left")
     }
 
     val preferences: Flow<AppPreferences> = store.data
@@ -73,6 +84,7 @@ class SettingsRepository private constructor(private val store: DataStore<Prefer
                     keepScreenOn = p[K.keepOn] ?: d.keepScreenOn,
                     showStatsOverlay = p[K.stats] ?: d.showStatsOverlay,
                     scalePercent = p[K.displayScale] ?: d.scalePercent,
+                    showKeyboardButton = p[K.kbButton] ?: d.showKeyboardButton,
                 ),
                 themeMode = enumOr(p[K.theme], ThemeMode.SYSTEM),
                 dynamicColor = p[K.dynamic] ?: false,
@@ -97,6 +109,7 @@ class SettingsRepository private constructor(private val store: DataStore<Prefer
                 keepScreenOn = p[K.keepOn] ?: true,
                 showStatsOverlay = p[K.stats] ?: false,
                 scalePercent = p[K.displayScale] ?: 0,
+                showKeyboardButton = p[K.kbButton] ?: true,
             )
             val s = transform(current)
             p[K.mode] = s.mode.name
@@ -111,7 +124,23 @@ class SettingsRepository private constructor(private val store: DataStore<Prefer
             p[K.keepOn] = s.keepScreenOn
             p[K.stats] = s.showStatsOverlay
             p[K.displayScale] = s.scalePercent
+            p[K.kbButton] = s.showKeyboardButton
         }
+    }
+
+    /** Floating keyboard button position per orientation: snapped edge + vertical fraction (0 top … 1 bottom). */
+    fun keyboardBubble(landscape: Boolean): Flow<KeyboardBubblePos> = store.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { p ->
+            KeyboardBubblePos(
+                left = p[K.bubbleLeft(landscape)] ?: false,
+                yFraction = (p[K.bubbleY(landscape)] ?: KeyboardBubblePos.DEFAULT_Y).coerceIn(0f, 1f),
+            )
+        }
+
+    suspend fun setKeyboardBubble(landscape: Boolean, pos: KeyboardBubblePos) = store.edit {
+        it[K.bubbleLeft(landscape)] = pos.left
+        it[K.bubbleY(landscape)] = pos.yFraction.coerceIn(0f, 1f)
     }
 
     suspend fun setThemeMode(mode: ThemeMode) = store.edit { it[K.theme] = mode.name }

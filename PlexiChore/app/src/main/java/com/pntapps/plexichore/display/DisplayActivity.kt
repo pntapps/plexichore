@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Display
+import android.view.KeyEvent
 import android.view.SurfaceHolder
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -30,6 +31,7 @@ import com.pntapps.plexichore.core.PlexiCoreConnection
 import com.pntapps.plexichore.core.StreamSettings
 import com.pntapps.plexichore.core.TouchMode
 import com.pntapps.plexichore.ui.components.DisplayScaleUi
+import com.pntapps.plexichore.ui.data.KeyboardBubblePos
 import com.pntapps.plexichore.ui.data.SettingsRepository
 import com.pntapps.plexichore.ui.theme.PlexiChoreTheme
 import kotlinx.coroutines.Job
@@ -49,12 +51,18 @@ class DisplayActivity : ComponentActivity() {
 
     private lateinit var core: PlexiCoreConnection
     private lateinit var layout: StreamLayout
+    private lateinit var keyboard: StreamKeyboard
 
     private val controlsVisible = mutableStateOf(false)
     private val showHint = mutableStateOf(false)
     private val hasStreamed = mutableStateOf(false)
     private val orientationHint = mutableStateOf(false)
     private val regions = HashMap<String, RectF>()
+    private val persistentRegions = HashMap<String, RectF>()
+    private var restoreKeyboard = false
+    private var imeBottomPx = 0
+    private val bubbleLand = mutableStateOf(KeyboardBubblePos())
+    private val bubblePort = mutableStateOf(KeyboardBubblePos())
     private var hideJob: Job? = null
     private var currentCodec: String? = null
     private var hintShown = false
@@ -68,7 +76,11 @@ class DisplayActivity : ComponentActivity() {
             return
         }
         alive = true
+        restoreKeyboard = savedInstanceState?.getBoolean(STATE_KEYBOARD) == true
 
+        // The video never resizes or pans for the soft keyboard (that would change the viewport the
+        // host builds its display from); the keyboard UI follows the IME insets instead.
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING or WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         if (Build.VERSION.SDK_INT >= 30) {
             window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
@@ -80,7 +92,20 @@ class DisplayActivity : ComponentActivity() {
         enterImmersive()
 
         layout = StreamLayout(this, streamCallbacks)
+        keyboard = StreamKeyboard(
+            this,
+            send = { action, code, text -> core.sendKey(action, code, text) },
+            isStreaming = { core.state.value is ConnectionState.Streaming },
+        )
+        keyboard.onOpenChanged = { open -> if (!open) layout.keepTouchVisible(null, 0f) }
+        layout.addView(keyboard.sink, ViewGroup.LayoutParams(1, 1))
+        val repo = SettingsRepository.get(this)
+        lifecycleScope.launch { repo.keyboardBubble(landscape = true).collect { bubbleLand.value = it } }
+        lifecycleScope.launch { repo.keyboardBubble(landscape = false).collect { bubblePort.value = it } }
         val overlay = ComposeView(this).apply {
+            // The overlay never takes focus: the keyboard sink must keep it, or the IME would close.
+            descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+            isFocusable = false
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val state by core.state.collectAsState()
@@ -110,6 +135,16 @@ class DisplayActivity : ComponentActivity() {
                             lifecycleScope.launch { SettingsRepository.get(this@DisplayActivity).updateStream { it.copy(scalePercent = next) } }
                             scheduleHide()
                         },
+                        keyboard = KeyboardOverlayState(
+                            open = keyboard.open.value,
+                            showBubble = settings.showKeyboardButton,
+                            armed = keyboard.armed.value,
+                            locked = keyboard.locked.value,
+                            bubbleLandscape = bubbleLand.value,
+                            bubblePortrait = bubblePort.value,
+                            keysAtTop = Build.VERSION.SDK_INT < 30,
+                        ),
+                        keyboardActions = keyboardActions,
                     )
                 }
             }
@@ -119,8 +154,8 @@ class DisplayActivity : ComponentActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // Never leave the session by accident: back only toggles the controls.
-                setControlsVisible(!controlsVisible.value)
+                // Never leave the session by accident: back closes the keyboard, else toggles the controls.
+                if (keyboard.open.value) keyboard.hide() else setControlsVisible(!controlsVisible.value)
             }
         })
 
@@ -140,7 +175,28 @@ class DisplayActivity : ComponentActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) enterImmersive()
+        if (hasFocus) enterImmersive() else if (::keyboard.isInitialized) keyboard.releaseHardwareKeys()
+    }
+
+    override fun onPause() {
+        if (::keyboard.isInitialized) keyboard.releaseHardwareKeys()
+        super.onPause()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (::keyboard.isInitialized) outState.putBoolean(STATE_KEYBOARD, keyboard.open.value)
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (::keyboard.isInitialized) keyboard.onConfigurationChanged()
+    }
+
+    /** Physical keyboards go to the host while streaming (system keys and the nav bar's Back stay local). */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (::keyboard.isInitialized && keyboard.onHardwareKey(event)) return true
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onDestroy() {
@@ -164,6 +220,11 @@ class DisplayActivity : ComponentActivity() {
                 orientationHint.value = core.orientationMismatch(c)
                 layout.forwardInput = true
                 hasStreamed.value = true
+                if (restoreKeyboard) {
+                    // Recreated while the keyboard was open (e.g. rotation with recreation): bring it back.
+                    restoreKeyboard = false
+                    layout.post { keyboard.show() }
+                }
                 if (!hintShown) {
                     hintShown = true
                     maybeShowHint()
@@ -172,8 +233,12 @@ class DisplayActivity : ComponentActivity() {
             is ConnectionState.Connecting, is ConnectionState.AwaitingApproval -> {
                 layout.forwardInput = false
                 setControlsVisible(false)
+                keyboard.onSessionEnded()
             }
-            ConnectionState.Idle, is ConnectionState.Failed -> close()
+            ConnectionState.Idle, is ConnectionState.Failed -> {
+                keyboard.onSessionEnded()
+                close()
+            }
         }
     }
 
@@ -220,9 +285,39 @@ class DisplayActivity : ComponentActivity() {
     }
 
     private fun onRegion(key: String, bounds: androidx.compose.ui.geometry.Rect?) {
-        if (bounds == null) regions.remove(key)
-        else regions[key] = RectF(bounds.left, bounds.top, bounds.right, bounds.bottom).apply { inset(-8f, -8f) }
+        val map = if (key in PERSISTENT_REGIONS) persistentRegions else regions
+        if (bounds == null) map.remove(key)
+        else map[key] = RectF(bounds.left, bounds.top, bounds.right, bounds.bottom).apply { inset(-8f, -8f) }
         layout.interactiveRegions = regions.values.toList()
+        layout.persistentRegions = persistentRegions.values.toList()
+        if (key == REGION_KEYS) updateVideoShift()
+    }
+
+    /** Keeps the field being typed into (last touch) visible above the keys row while the IME is up. */
+    private fun updateVideoShift() {
+        val row = persistentRegions[REGION_KEYS]
+        if (!keyboard.open.value || imeBottomPx <= 0 || row == null) {
+            layout.keepTouchVisible(null, 0f)
+            return
+        }
+        // Row top as laid out above the final IME height (the row itself may still be animating in).
+        val rowTop = minOf(row.top + 8f, layout.height - imeBottomPx - (row.height() - 16f))
+        layout.keepTouchVisible(rowTop, 24 * resources.displayMetrics.density)
+    }
+
+    private val keyboardActions = object : KeyboardActions {
+        override fun toggle() {
+            keyboard.toggle()
+            if (controlsVisible.value) scheduleHide()
+        }
+        override fun hide() = keyboard.hide()
+        override fun press(keyCode: Int, consume: Boolean) = keyboard.press(keyCode, consume)
+        override fun release() = keyboard.release()
+        override fun toggleModifier(m: StickyModifier) = keyboard.toggleModifier(m)
+        override fun moveBubble(landscape: Boolean, pos: KeyboardBubblePos) {
+            (if (landscape) bubbleLand else bubblePort).value = pos
+            lifecycleScope.launch { SettingsRepository.get(this@DisplayActivity).setKeyboardBubble(landscape, pos) }
+        }
     }
 
     // ---- StreamLayout.Callbacks ----------------------------------------------------------
@@ -233,6 +328,12 @@ class DisplayActivity : ComponentActivity() {
         override fun onViewportChanged(widthPx: Int, heightPx: Int) {
             core.onViewportChanged(widthPx, heightPx)
             (core.state.value as? ConnectionState.Streaming)?.let { orientationHint.value = core.orientationMismatch(it.config) }
+        }
+
+        override fun onImeChanged(visible: Boolean, bottomPx: Int) {
+            imeBottomPx = if (visible) bottomPx else 0
+            keyboard.onImeVisibilityChanged(visible)
+            updateVideoShift()
         }
 
         override fun onControlsGesture(toggle: Boolean) {
@@ -297,6 +398,9 @@ class DisplayActivity : ComponentActivity() {
         private const val TAG = "PlexiDisplay"
         private const val EXTRA_HOST = "host"
         private const val CONTROLS_TIMEOUT_MS = 4_000L
+        private const val STATE_KEYBOARD = "keyboard_open"
+        private const val REGION_KEYS = "kbRow"
+        private val PERSISTENT_REGIONS = setOf("kbBubble", REGION_KEYS)
 
         /** True while an instance is on screen or in the back stack. */
         @Volatile

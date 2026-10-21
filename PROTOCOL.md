@@ -24,7 +24,7 @@ Every message: `u8 type | u32 length | payload[length]`. Max payload 16 MiB. TCP
 | 0x02 | CONFIG | H→T | UTF-8 JSON (below). Sent after HELLO accepted and again whenever stream params change |
 | 0x03 | VIDEO | H→T | `u64 ptsMicros, u8 flags, bytes data`. flags bit0=keyframe, bit1=codec-config (H.264 SPS/PPS only). data = H.264 Annex-B (with start codes) or a full JPEG for mjpeg |
 | 0x04 | INPUT | T→H | binary pointer event (below) |
-| 0x05 | KEY | T→H | UTF-8 JSON `{"action":"down|up","keyCode":<android keycode>,"text":"optional"}` (soft keyboard; optional) |
+| 0x05 | KEY | T→H | UTF-8 JSON `{"action":"down|up","keyCode":<android keycode>,"text":"optional"}` (soft + physical keyboard; optional). Non-empty `text` is typed as Unicode on "down" only ("\n" = Return; keyCode then 0/ignored). Otherwise `keyCode` is pressed/released as given; modifiers are separate key codes (shift 59/60, ctrl 113/114, alt 57/58, meta 117/118 = ⌘ on macOS, Win on Windows) sent down before and up after the key; held modifiers apply to following key codes (not reliably to `text`), so the tablet sends a key code for a character typed with Ctrl/Alt/Meta. IME composition is resolved tablet-side (the host only sees backspaces (67) and text). |
 | 0x06 | PING | both | `u64 senderTimeMicros` — receiver echoes the same payload back as PONG |
 | 0x07 | PONG | both | echoed payload |
 | 0x08 | REQUEST_KEYFRAME | T→H | empty. Host must emit IDR (with SPS/PPS before it) ASAP |

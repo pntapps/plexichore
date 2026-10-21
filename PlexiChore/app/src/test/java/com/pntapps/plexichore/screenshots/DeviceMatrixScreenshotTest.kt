@@ -41,6 +41,8 @@ import com.pntapps.plexichore.core.StreamSettings
 import com.pntapps.plexichore.core.StreamStats
 import com.pntapps.plexichore.core.Transport
 import com.pntapps.plexichore.display.DisplayOverlay
+import com.pntapps.plexichore.display.KeyboardOverlayState
+import com.pntapps.plexichore.display.StickyModifier
 import com.pntapps.plexichore.ui.MainViewModel
 import com.pntapps.plexichore.ui.components.AuroraBackground
 import com.pntapps.plexichore.ui.navigation.adaptiveInfo
@@ -219,6 +221,33 @@ class DeviceMatrixScreenshotTest(private val cfg: ShotConfig) {
                     stats = StreamStats(), settings = StreamSettings(),
                     controlsVisible = false, showHint = true, hasStreamed = true,
                     onDisconnect = {}, onToggleStats = {}, onCycleTouchMode = {}, onRegion = { _, _ -> },
+                )
+            }
+        }
+        // Soft keyboard open (no IME in Robolectric: the keys row docks at the bottom), Ctrl armed, ⌘ locked, Mac host.
+        shot("21_display_keyboard", appFrame = false) { _, _ ->
+            Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xFF203040))) {
+                DisplayOverlay(
+                    state = ConnectionState.Streaming(longHost, streamingConfig.copy(hostOs = "macos")),
+                    stats = StreamStats(), settings = StreamSettings(),
+                    controlsVisible = true, showHint = false, hasStreamed = true,
+                    onDisconnect = {}, onToggleStats = {}, onCycleTouchMode = {}, onRegion = { _, _ -> },
+                    keyboard = KeyboardOverlayState(
+                        open = true, showBubble = true,
+                        armed = setOf(StickyModifier.CTRL), locked = setOf(StickyModifier.META),
+                    ),
+                )
+            }
+        }
+        // Floating keyboard button only (controls hidden, keyboard closed), Windows host.
+        shot("22_display_keyboard_bubble", appFrame = false) { _, _ ->
+            Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xFF203040))) {
+                DisplayOverlay(
+                    state = ConnectionState.Streaming(longHost, streamingConfig),
+                    stats = StreamStats(), settings = StreamSettings(),
+                    controlsVisible = false, showHint = false, hasStreamed = true,
+                    onDisconnect = {}, onToggleStats = {}, onCycleTouchMode = {}, onRegion = { _, _ -> },
+                    keyboard = KeyboardOverlayState(showBubble = true),
                 )
             }
         }

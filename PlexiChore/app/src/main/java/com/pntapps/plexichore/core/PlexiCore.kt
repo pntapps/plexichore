@@ -132,7 +132,7 @@ internal class PlexiCoreConnection(private val app: Context) : PlexiConnection, 
         val old = _settings.value
         _settings.value = settings
         if (settings.codec != old.codec) codecFallback = null
-        val hostRelevant = old.copy(keepScreenOn = settings.keepScreenOn, showStatsOverlay = settings.showStatsOverlay) != settings
+        val hostRelevant = old.copy(keepScreenOn = settings.keepScreenOn, showStatsOverlay = settings.showStatsOverlay, showKeyboardButton = settings.showKeyboardButton) != settings
         if (hostRelevant) session?.send(Protocol.frame(Protocol.SETTINGS, Protocol.requested(settings, requestedCodec(), orientation)))
     }
 
@@ -151,6 +151,12 @@ internal class PlexiCoreConnection(private val app: Context) : PlexiConnection, 
         if (_settings.value.touchMode == TouchMode.NONE) return
         if (_state.value !is ConnectionState.Streaming) return
         session?.send(input.frame, input.coalesceKey)
+    }
+
+    /** Forwards a KEY message if streaming (any thread; the outbound queue is synchronized and keeps order with INPUT). */
+    override fun sendKey(action: String, keyCode: Int, text: String?) {
+        if (_state.value !is ConnectionState.Streaming) return
+        session?.send(Protocol.keyFrame(action, keyCode, text))
     }
 
     // VideoPipeline.Listener

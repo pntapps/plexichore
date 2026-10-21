@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.PointF
 import android.graphics.RectF
+import android.os.Build
 import android.util.SparseArray
 import android.view.Gravity
 import android.view.InputDevice
@@ -38,6 +39,8 @@ internal class StreamLayout(
         fun onControlsGesture(toggle: Boolean)
         /** Window size of the display (rotation, split screen, fold/unfold). */
         fun onViewportChanged(widthPx: Int, heightPx: Int) {}
+        /** IME shown / hidden (API 30+ only; [bottomPx] = its height from the window bottom). */
+        fun onImeChanged(visible: Boolean, bottomPx: Int) {}
     }
 
     var surfaceView: SurfaceView = newSurfaceView()
@@ -51,6 +54,22 @@ internal class StreamLayout(
 
     /** Overlay areas that take touches (pill buttons etc.), in this view's coordinates. */
     var interactiveRegions: List<RectF> = emptyList()
+
+    /** Overlay areas that take touches even while the controls are hidden (keyboard bubble / keys row). */
+    var persistentRegions: List<RectF> = emptyList()
+
+    /** Last point (y, unshifted layout coordinates) where a touch was sent to the host — the field being typed into. */
+    var lastTouchY = Float.NaN
+        private set
+
+    /** How far the video is moved up to keep [lastTouchY] above the keyboard (px, >= 0). */
+    var videoShift = 0f
+        private set
+    private var shiftAnimator: android.animation.ValueAnimator? = null
+    /** [contentRect] as currently drawn (moved by [videoShift]); input is normalized to this. */
+    private val inputRect = RectF()
+    private var imeVisible = false
+    private var imeBottom = 0
 
     var controlsVisible = false
 
@@ -80,6 +99,16 @@ internal class StreamLayout(
         isMotionEventSplittingEnabled = false
         addView(surfaceView, 0)
         ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
+            // The window never resizes for the IME (adjustNothing + edge-to-edge): it only matters for
+            // the keyboard UI. While it is up, bars it brings along must not letterbox the picture.
+            val ime = Build.VERSION.SDK_INT >= 30 && insets.isVisible(WindowInsetsCompat.Type.ime())
+            val imeH = if (ime) insets.getInsets(WindowInsetsCompat.Type.ime()).bottom else 0
+            if (ime != imeVisible || imeH != imeBottom) {
+                imeVisible = ime
+                imeBottom = imeH
+                callbacks.onImeChanged(ime, imeH)
+            }
+            if (ime) return@setOnApplyWindowInsetsListener insets
             var barTypes = 0
             for (type in intArrayOf(WindowInsetsCompat.Type.statusBars(), WindowInsetsCompat.Type.navigationBars(), WindowInsetsCompat.Type.captionBar())) {
                 if (insets.isVisible(type)) barTypes = barTypes or type
@@ -101,6 +130,7 @@ internal class StreamLayout(
         layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER)
         holder.addCallback(callbacks)
         isFocusable = false
+        translationY = -videoShift
     }
 
     /**
@@ -142,6 +172,7 @@ internal class StreamLayout(
         val left = safeLeft + (w - fw) / 2
         val top = safeTop + (h - fh) / 2
         contentRect.set(left.toFloat(), top.toFloat(), (left + fw).toFloat(), (top + fh).toFloat())
+        updateInputRect()
         val lp = surfaceView.layoutParams as LayoutParams
         if (lp.width != fw || lp.height != fh || lp.leftMargin != left || lp.topMargin != top || lp.gravity != (Gravity.TOP or Gravity.START)) {
             lp.width = fw
@@ -151,6 +182,48 @@ internal class StreamLayout(
             lp.topMargin = top
             surfaceView.layoutParams = lp
         }
+    }
+
+    // ---- Keyboard: keep the touched field visible -----------------------------------------
+
+    /**
+     * Moves the video up (translation only — the host keeps its resolution) so [lastTouchY] sits
+     * [marginPx] above [visibleBottom], or back down with [visibleBottom] = null.
+     */
+    fun keepTouchVisible(visibleBottom: Float?, marginPx: Float) {
+        val y = lastTouchY
+        val target = if (visibleBottom == null || y.isNaN()) 0f
+        else (y - (visibleBottom - marginPx)).coerceIn(0f, (y - marginPx).coerceAtLeast(0f))
+        animateShift(target)
+    }
+
+    private fun animateShift(target: Float) {
+        val running = shiftAnimator
+        if (running != null && running.isRunning && abs((running.animatedValue as Float) - target) < 1f) return
+        if (running == null && abs(videoShift - target) < 1f) return
+        running?.cancel()
+        shiftAnimator = android.animation.ValueAnimator.ofFloat(videoShift, target).apply {
+            duration = SHIFT_ANIM_MS
+            interpolator = android.view.animation.DecelerateInterpolator()
+            addUpdateListener { applyShift(it.animatedValue as Float) }
+            addListener(object : android.animation.AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: android.animation.Animator) {
+                    if (shiftAnimator === animation) shiftAnimator = null
+                }
+            })
+            start()
+        }
+    }
+
+    private fun applyShift(v: Float) {
+        videoShift = v
+        surfaceView.translationY = -v
+        updateInputRect()
+    }
+
+    private fun updateInputRect() {
+        inputRect.set(contentRect)
+        inputRect.offset(0f, -videoShift)
     }
 
     // ---- Touch routing -------------------------------------------------------------------
@@ -170,6 +243,7 @@ internal class StreamLayout(
         if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
             mode = when {
                 !forwardInput -> Mode.OVERLAY
+                persistentRegions.any { it.contains(ev.x, ev.y) } -> Mode.OVERLAY
                 controlsVisible && interactiveRegions.any { it.contains(ev.x, ev.y) } -> Mode.OVERLAY
                 ev.y < edgePx && !controlsVisible -> Mode.EDGE_PENDING
                 else -> Mode.FORWARD
@@ -232,6 +306,7 @@ internal class StreamLayout(
     }
 
     private fun handleForward(ev: MotionEvent) {
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN) lastTouchY = ev.y + videoShift
         if (ev.actionMasked == MotionEvent.ACTION_POINTER_DOWN && fingerCount(ev) >= 3) {
             // Third finger: retract the gesture from the host and handle it locally.
             encode(ev, forceAction = InputEncoder.ACTION_CANCEL, excludeIndex = ev.actionIndex)?.let(callbacks::onInput)
@@ -276,7 +351,7 @@ internal class StreamLayout(
     }
 
     private fun encode(ev: MotionEvent, forceAction: Int? = null, excludeIndex: Int = -1): EncodedInput? =
-        InputEncoder.encode(ev, contentRect, forceAction, excludeIndex)
+        InputEncoder.encode(ev, inputRect, forceAction, excludeIndex)
 
     private fun fingerCount(ev: MotionEvent): Int {
         var n = 0
@@ -291,5 +366,6 @@ internal class StreamLayout(
     private companion object {
         const val EDGE_DECISION_MS = 350L
         const val THREE_FINGER_TAP_MS = 450L
+        const val SHIFT_ANIM_MS = 220L
     }
 }
