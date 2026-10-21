@@ -114,6 +114,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pntapps.plexichore.core.ConnectionState
 import com.pntapps.plexichore.core.DiscoveredHost
 import com.pntapps.plexichore.core.DisplayMode
+import com.pntapps.plexichore.core.HostDiscovery
 import com.pntapps.plexichore.core.Quality
 import com.pntapps.plexichore.core.Transport
 import com.pntapps.plexichore.ui.MainViewModel
@@ -471,8 +472,20 @@ private fun HostCard(g: HostGroup, connected: Boolean, onConnect: () -> Unit) {
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             // Narrow card or big text: the action moves below so the name keeps its width.
             val narrow = maxWidth < 460.dp || fontScale >= 1.5f
-            val via = listOfNotNull(if (Transport.USB in g.transports) "USB cable" else null, g.lanAddress)
-            val subtitle = (if (mac) "macOS" else "Windows") + if (via.isEmpty()) "" else " · " + via.joinToString(" · ")
+            // The "USB" route may really be wireless debugging (adb over Wi-Fi, no cable): say so instead of "USB cable".
+            val usbWireless = Transport.USB in g.transports && HostDiscovery.usbIsWirelessDebugging(LocalContext.current)
+            val via = listOfNotNull(
+                if (Transport.USB in g.transports) (if (usbWireless) "wireless debugging" else "USB cable") else null,
+                g.lanAddress,
+            )
+            val title = if (host.name == HostDiscovery.UNKNOWN_USB_NAME && usbWireless) "Computer via wireless debugging" else host.name
+            // OS unknown (USB before the first session): show only how it is connected, never a guess.
+            val osLabel = when {
+                mac -> "macOS"
+                host.os.equals("windows", true) -> "Windows"
+                else -> null
+            }
+            val subtitle = listOfNotNull(osLabel, *via.toTypedArray()).joinToString(" · ")
             val action: @Composable () -> Unit = {
                 if (connected) StatusChip("Connected", c.success, icon = Icons.Rounded.CheckCircle)
                 else GradientButton("Connect", onConnect, icon = Icons.AutoMirrored.Rounded.ArrowForward, height = 48.dp)
@@ -483,7 +496,7 @@ private fun HostCard(g: HostGroup, connected: Boolean, onConnect: () -> Unit) {
                     Spacer(Modifier.width(if (narrow) 12.dp else 16.dp))
                     Column(Modifier.weight(1f)) {
                         Text(
-                            host.name, style = MaterialTheme.typography.titleLarge, color = c.textPrimary,
+                            title, style = MaterialTheme.typography.titleLarge, color = c.textPrimary,
                             maxLines = if (narrow) 2 else 1, overflow = TextOverflow.Ellipsis,
                         )
                         Spacer(Modifier.height(2.dp))
@@ -492,7 +505,9 @@ private fun HostCard(g: HostGroup, connected: Boolean, onConnect: () -> Unit) {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             g.transports.forEach { t ->
                                 when (t) {
-                                    Transport.USB -> StatusChip("USB", c.accentEnd, icon = Icons.Rounded.Usb)
+                                    Transport.USB ->
+                                        if (usbWireless) StatusChip("Wireless debugging", c.accentEnd, icon = Icons.Rounded.Wifi)
+                                        else StatusChip("USB", c.accentEnd, icon = Icons.Rounded.Usb)
                                     Transport.WIFI -> StatusChip("Wi-Fi", c.accentStart, icon = Icons.Rounded.Wifi)
                                     Transport.MANUAL -> StatusChip("Manual", c.accentMid, icon = Icons.Rounded.Lan)
                                 }

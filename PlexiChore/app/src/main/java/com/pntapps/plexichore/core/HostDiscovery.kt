@@ -329,9 +329,24 @@ internal class HostDiscovery(
         /** CONFIG `link` of the last USB (127.0.0.1) session: "usb-cable" or "usb-wireless-adb"; "" = unknown. */
         @Volatile var lastUsbLink: String = ""
 
+        /**
+         * The 127.0.0.1 "USB" route is tunnelled over *wireless debugging* rather than a cable: nothing plugged into a
+         * computer (a charger doesn't count) and wireless debugging is on. Used for labels and the LAN-path preference.
+         */
+        fun usbIsWirelessDebugging(context: Context): Boolean = runCatching {
+            val battery = context.registerReceiver(null, android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED))
+            val plugged = battery?.getIntExtra(android.os.BatteryManager.EXTRA_PLUGGED, 0) ?: 0
+            val cableToPc = plugged == android.os.BatteryManager.BATTERY_PLUGGED_USB
+            val wirelessAdb = android.provider.Settings.Global.getInt(context.contentResolver, "adb_wifi_enabled", 0) == 1
+            !cableToPc && wirelessAdb
+        }.getOrDefault(false)
+
+        /** Card title for a USB host before any USB session told us its name (OS left blank, not guessed). */
+        const val UNKNOWN_USB_NAME = "Computer on USB"
+
         fun lastUsbHost(context: Context): Pair<String, String> {
             val p = DeviceProfile.prefs(context)
-            return (p.getString(KEY_USB_NAME, null) ?: "USB") to (p.getString(KEY_USB_OS, null) ?: "windows")
+            return (p.getString(KEY_USB_NAME, null) ?: UNKNOWN_USB_NAME) to (p.getString(KEY_USB_OS, null) ?: "")
         }
 
         fun rememberUsbHost(context: Context, name: String, os: String) {

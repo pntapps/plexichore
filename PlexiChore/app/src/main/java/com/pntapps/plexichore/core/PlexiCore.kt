@@ -265,11 +265,7 @@ internal class PlexiCoreConnection(private val app: Context) : PlexiConnection, 
     private fun lanAlternative(h: DiscoveredHost): DiscoveredHost? {
         if (h.transport != Transport.USB) return null
         return runCatching {
-            val battery = app.registerReceiver(null, android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED))
-            val plugged = battery?.getIntExtra(android.os.BatteryManager.EXTRA_PLUGGED, 0) ?: 0
-            val cableToPc = plugged == android.os.BatteryManager.BATTERY_PLUGGED_USB
-            val wirelessAdb = android.provider.Settings.Global.getInt(app.contentResolver, "adb_wifi_enabled", 0) == 1
-            if (cableToPc || !wirelessAdb) return null
+            if (!HostDiscovery.usbIsWirelessDebugging(app)) return null
             val name = HostDiscovery.lastUsbHost(app).first
             hosts.value.firstOrNull { it.transport == Transport.WIFI && it.name.equals(name, ignoreCase = true) }
         }.getOrNull()

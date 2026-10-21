@@ -10,3 +10,7 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+# Release crash fix (IllegalAccessError at startup): with `optimization.packageScope` R8 moved Kotlin multi-file
+# facade parts (e.g. kotlin.sequences.SequencesKt___SequencesJvmKt) out of their package while their package-private
+# superclass part stayed behind. Keep library classes in their own packages; shrinking and renaming still apply.
+-keeppackagenames androidx.**,kotlin.**,kotlinx.**

@@ -1,6 +1,7 @@
 package com.pntapps.plexichore.ui
 
 import com.pntapps.plexichore.core.DiscoveredHost
+import com.pntapps.plexichore.core.HostDiscovery
 import com.pntapps.plexichore.core.Transport
 
 /**
@@ -40,7 +41,8 @@ data class HostGroup(val primary: DiscoveredHost, val members: List<DiscoveredHo
             if (usb != null) {
                 val usbName = usb.firstOrNull { it.transport == Transport.USB }?.let(::normalizedName)
                 val twin = groups.firstOrNull { g ->
-                    g !== usb && usbName != null && usbName != "usb" && g.any { normalizedName(it) == usbName }
+                    g !== usb && usbName != null && usbName != "usb" &&
+                        usbName != HostDiscovery.UNKNOWN_USB_NAME.lowercase() && g.any { normalizedName(it) == usbName }
                 }
                 if (twin != null) {
                     usb.addAll(twin)

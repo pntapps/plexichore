@@ -43,6 +43,10 @@ class CompatLogicTest {
     fun unnamedUsbEntryIsNotMergedByName() {
         val groups = HostGroup.merge(listOf(host("usb", "USB", Transport.USB, "127.0.0.1"), host("g", "usb", Transport.WIFI)))
         assertEquals(2, groups.size)
+        // the placeholder shown before the first USB session never merges by name either
+        val placeholder = com.pntapps.plexichore.core.HostDiscovery.UNKNOWN_USB_NAME
+        val groups2 = HostGroup.merge(listOf(host("usb", placeholder, Transport.USB, "127.0.0.1"), host("g", placeholder, Transport.WIFI)))
+        assertEquals(2, groups2.size)
     }
 
     @Test

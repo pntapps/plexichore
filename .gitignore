@@ -37,3 +37,6 @@ DerivedData/
 Package.resolved
 PlexiChore-Desktop/tools/EngineTestClient/*.h264
 PlexiChore-Desktop/tools/EngineTestClient/*.jpg
+
+# Android Studio "Generate Signed APK" output (signed release builds, R8 mapping)
+PlexiChore/app/release/
