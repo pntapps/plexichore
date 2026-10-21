@@ -1,12 +1,10 @@
 package com.pntapps.plexichore.core
 
 import android.content.Context
-import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
-import com.pntapps.plexichore.display.DisplayActivity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -73,6 +71,8 @@ internal class PlexiCoreConnection(private val app: Context) : PlexiConnection, 
     private val lock = Any()
 
     init { LanNetwork.init(app) }
+
+    private val displayLauncher = DisplayLauncher(app, main) { _state.value is ConnectionState.Streaming }
 
     private val discovery = HostDiscovery(app, scope) { currentHost }
     override val hosts: StateFlow<List<DiscoveredHost>> = discovery.hosts
@@ -229,6 +229,7 @@ internal class PlexiCoreConnection(private val app: Context) : PlexiConnection, 
 
     private fun teardownLocked(byeReason: String) {
         generation++
+        main.post { displayLauncher.cancel() }
         connectJob?.cancel()
         connectJob = null
         val s = session
@@ -379,17 +380,7 @@ internal class PlexiCoreConnection(private val app: Context) : PlexiConnection, 
         }
     }
 
-    private fun launchDisplay() {
-        if (_state.value !is ConnectionState.Streaming || DisplayActivity.alive) return
-        try {
-            app.startActivity(
-                Intent(app, DisplayActivity::class.java)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            )
-        } catch (e: Exception) {
-            Log.w(TAG, "Cannot launch display", e)
-        }
-    }
+    private fun launchDisplay() = displayLauncher.request()
 
     private suspend fun statsLoop() {
         var lastT = SystemClock.elapsedRealtimeNanos()

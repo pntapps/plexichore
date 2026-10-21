@@ -112,6 +112,16 @@ final class DiscoveryBeacon: @unchecked Sendable {
 
     // MARK: Receiving
 
+    /// Windows DiscoveryBeacon: a datagram of ≥ 6 bytes whose first ≤ 16 bytes, as ASCII (bytes >= 0x80 read as '?')
+    /// with trailing NUL / CR / LF / space trimmed, are exactly "PLEXI?". So "PLEXI?\0" from C clients matches, and
+    /// leading whitespace or a tab does not.
+    static func isDiscoveryQuery<C: Collection>(_ datagram: C) -> Bool where C.Element == UInt8 {
+        guard datagram.count >= 6 else { return false }
+        var head = datagram.prefix(16).map { $0 >= 0x80 ? UInt8(ascii: "?") : $0 }
+        while let last = head.last, last == 0 || last == 0x0D || last == 0x0A || last == 0x20 { head.removeLast() }
+        return head == Array(PlexiProtocol.discoveryQuery.utf8)
+    }
+
     private func drainSocket() {
         guard fd >= 0 else { return }
         let s = fd
@@ -128,10 +138,7 @@ final class DiscoveryBeacon: @unchecked Sendable {
                 }
             }
             if n <= 0 { break }   // EAGAIN or error
-            let bytes = Array(buffer[0..<n])
-            guard let text = String(bytes: bytes, encoding: .utf8) else { continue }
-            if text.trimmingCharacters(in: .whitespacesAndNewlines) == PlexiProtocol.discoveryQuery,
-               from.sin_family == sa_family_t(AF_INET) {
+            if Self.isDiscoveryQuery(buffer[0..<n]), from.sin_family == sa_family_t(AF_INET) {
                 send(payloadProvider(), toAddress: from.sin_addr.s_addr, port: from.sin_port)
             }
             // Anything else (including our own / other hosts' beacons) is ignored.

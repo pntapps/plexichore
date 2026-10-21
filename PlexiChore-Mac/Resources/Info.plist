@@ -8,6 +8,8 @@
 	<string>PlexiChore</string>
 	<key>CFBundleExecutable</key>
 	<string>PlexiChore</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.pntapps.plexichore.mac</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -26,17 +28,17 @@
 	<string>13.0</string>
 	<key>LSUIElement</key>
 	<true/>
-	<key>NSHighResolutionCapable</key>
-	<true/>
-	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
-	<key>NSHumanReadableCopyright</key>
-	<string>© PNT Apps</string>
-	<key>NSScreenCaptureUsageDescription</key>
-	<string>PlexiChore captures the display shown on your tablet so it can be streamed to it.</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>PlexiChore announces this Mac on your local network and accepts connections from your tablet over Wi-Fi.</string>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>PlexiChore turns touches and pen input from your tablet into pointer and keyboard events.</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSHumanReadableCopyright</key>
+	<string>© PNT Apps</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>PlexiChore announces this Mac on your local network and accepts connections from your tablet over Wi-Fi.</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>PlexiChore captures the display shown on your tablet so it can be streamed to it.</string>
 </dict>
 </plist>

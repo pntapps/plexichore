@@ -22,6 +22,23 @@ object DisplayScaleUi {
     }
 
     /**
+     * Overlay "A+" / "A−": the next larger / smaller fixed size from what is applied now (Auto counts as the
+     * host's applied scale, or [autoFallback] before CONFIG says). null = already at the end of [options].
+     */
+    fun larger(percent: Int, applied: Int, autoFallback: Int = 200): Int? {
+        val now = effective(percent, applied, autoFallback)
+        return options.firstOrNull { it > 0 && it > now }
+    }
+
+    fun smaller(percent: Int, applied: Int, autoFallback: Int = 200): Int? {
+        val now = effective(percent, applied, autoFallback)
+        return options.lastOrNull { it > 0 && it < now }
+    }
+
+    private fun effective(percent: Int, applied: Int, autoFallback: Int): Int =
+        if (percent > 0) percent else if (applied > 0) applied else autoFallback
+
+    /**
      * What Auto resolves to on the host: Windows UI the same physical size as this tablet's Android UI
      * (densityDpi / 160), divided by the downscale factor, nearest step (ties → lower), clamped to 125..250
      * (100 allowed when downscaled).

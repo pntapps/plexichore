@@ -56,6 +56,9 @@ import com.pntapps.plexichore.core.StreamSettings
 import com.pntapps.plexichore.core.StreamStats
 import com.pntapps.plexichore.core.TouchMode
 import java.util.Locale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import com.pntapps.plexichore.ui.components.DisplayScaleUi
 
 /** Everything drawn above the video. Interactive bounds are reported via [onRegion]. */
 @Composable
@@ -70,7 +73,7 @@ internal fun DisplayOverlay(
     onToggleStats: () -> Unit,
     onCycleTouchMode: () -> Unit,
     onRegion: (key: String, bounds: Rect?) -> Unit,
-    onCycleScale: () -> Unit = {},
+    onSetScale: (Int) -> Unit = {},
     /** Tablet held portrait while the host streams landscape (no portrait mode on the PC). */
     orientationHint: Boolean = false,
 ) {
@@ -106,7 +109,7 @@ internal fun DisplayOverlay(
                 modifier = Modifier.widthIn(max = pillMax).onGloballyPositioned { onRegion("pill", it.boundsInRoot()) },
                 showSize = streaming != null && streaming.config.mode != DisplayMode.MIRROR,
                 appliedScale = streaming?.config?.scalePercent ?: 0,
-                onCycleScale = onCycleScale,
+                onSetScale = onSetScale,
                 iconOnly = compact,
                 showHost = maxWidth >= 420.dp,
             )
@@ -153,7 +156,7 @@ private fun ControlPill(
     modifier: Modifier = Modifier,
     showSize: Boolean = false,
     appliedScale: Int = 0,
-    onCycleScale: () -> Unit = {},
+    onSetScale: (Int) -> Unit = {},
     /** Small windows / large font: buttons become 48dp icons (labels stay as content descriptions). */
     iconOnly: Boolean = false,
     showHost: Boolean = true,
@@ -200,18 +203,26 @@ private fun ControlPill(
                 iconOnly = iconOnly,
             )
             if (showSize) {
-                // host display scale of the virtual monitor (extend / primary); cycles Auto → 150% … 250% → Auto
+                // host display scale of the virtual monitor (extend / primary): − smaller text, + larger text
                 val sizeLabel = if (settings.scalePercent <= 0) {
                     if (appliedScale > 0) "Auto $appliedScale%" else "Auto"
                 } else "${settings.scalePercent}%"
-                PillButton(
-                    icon = OverlayIcons.Size,
-                    label = sizeLabel,
-                    selected = false,
-                    onClick = onCycleScale,
-                    iconOnly = iconOnly,
-                    contentDescription = "Display size $sizeLabel",
-                )
+                val smaller = DisplayScaleUi.smaller(settings.scalePercent, appliedScale)
+                val larger = DisplayScaleUi.larger(settings.scalePercent, appliedScale)
+                IconButton(onClick = { smaller?.let(onSetScale) }, enabled = smaller != null) {
+                    Icon(OverlayIcons.Minus, contentDescription = "Smaller text and windows")
+                }
+                if (!iconOnly) {
+                    Text(
+                        sizeLabel,
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                        modifier = Modifier.semantics { contentDescription = "Display size $sizeLabel" },
+                    )
+                }
+                IconButton(onClick = { larger?.let(onSetScale) }, enabled = larger != null) {
+                    Icon(OverlayIcons.Plus, contentDescription = "Larger text and windows")
+                }
             }
             PillButton(
                 icon = OverlayIcons.Stats,
@@ -344,6 +355,8 @@ internal object OverlayIcons {
     val Close = icon("Close", "M19,6.41L17.59,5 12,10.59 6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 12,13.41 17.59,19 19,17.59 13.41,12z")
     val Stats = icon("Stats", "M10,20h4V4h-4v16zm-6,0h4v-8H4v8zM16,9v11h4V9h-4z")
     val Size = icon("Size", "M9,4v3h5v12h3V7h5V4H9zM3,12h3v7h3v-7h3V9H3v3z")
+    val Minus = icon("Minus", "M19,13H5v-2h14v2z")
+    val Plus = icon("Plus", "M19,13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z")
     val Mouse = icon(
         "Mouse",
         "M13,1.07V9h7c0,-4.08 -3.05,-7.44 -7,-7.93zM4,15c0,4.42 3.58,8 8,8s8,-3.58 8,-8v-4H4v4zm7,-13.93C7.05,1.56 4,4.92 4,9h7V1.07z",

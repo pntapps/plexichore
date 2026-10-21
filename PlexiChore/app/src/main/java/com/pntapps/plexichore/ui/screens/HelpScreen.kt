@@ -33,13 +33,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.Cable
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.FormatSize
+import androidx.compose.material.icons.rounded.Laptop
+import androidx.compose.material.icons.rounded.Mouse
+import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Usb
 import androidx.compose.material.icons.rounded.Wifi
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -111,7 +119,10 @@ fun HelpScreen(onBack: () -> Unit) {
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 28.dp, end = 28.dp, bottom = bottom),
                 horizontalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                stepsPane(Modifier.weight(0.58f))
+                Column(Modifier.weight(0.58f), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    stepsPane(Modifier.fillMaxWidth())
+                    StreamingInfo()
+                }
                 Column(Modifier.weight(0.42f), verticalArrangement = Arrangement.spacedBy(20.dp)) { SideInfo() }
             }
         } else {
@@ -120,6 +131,7 @@ fun HelpScreen(onBack: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
                 stepsPane(Modifier.fillMaxWidth())
+                StreamingInfo()
                 SideInfo()
             }
         }
@@ -167,11 +179,41 @@ private fun SideInfo() {
     GlassCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(24.dp)) {
         Text("Troubleshooting", style = MaterialTheme.typography.titleLarge, color = c.textPrimary)
         Spacer(Modifier.height(16.dp))
-        Trouble(Icons.Rounded.Cable, "USB host not showing", "Re-plug the cable, accept the debugging prompt, and use a data-capable cable (not charge-only).")
-        Trouble(Icons.Rounded.WifiOff, "Wi-Fi host not showing", "Guest networks and VPNs often block discovery. Try Connect by IP.")
+        Trouble(Icons.Rounded.Cable, "USB host not showing", "Turn on USB debugging (see the USB cable steps), re-plug the cable, accept the debugging prompt, and use a data-capable cable (not charge-only).")
+        Trouble(Icons.Rounded.WifiOff, "Wi-Fi host not showing", "Same network on both. Guest networks and VPNs often block discovery. On a Mac allow PlexiChore under Privacy & Security › Local Network. Or try Connect by IP.")
         Trouble(Icons.Rounded.Security, "Connection refused", "Allow PlexiChore Desktop through your firewall on TCP 47800 and UDP 47801.")
-        Trouble(Icons.Rounded.Speed, "Laggy or blurry", "Prefer USB, pick the Speed preset, or lower resolution and bitrate in Settings.")
-        Trouble(Icons.Rounded.CheckCircle, "Extend not available", "Extended mode needs the PlexiChore virtual display driver. Mirror always works.", last = true)
+        Trouble(Icons.Rounded.Pin, "Pairing code", "The first Wi-Fi connection shows a 4-digit code here. Approve the same code on your computer. USB never needs pairing.")
+        Trouble(Icons.Rounded.Speed, "Laggy or choppy", "Use the USB cable rather than Wi-Fi and pick H.264 in Settings › Codec. Lower resolution or bitrate if needed.")
+        Trouble(Icons.Rounded.AspectRatio, "Black borders", "Update PlexiChore on this tablet, then rotate it once.")
+        Trouble(Icons.Rounded.Laptop, "MacBook lid closed", "On the Mac turn on Extended display › Options › Keep the tablet on with the lid closed (charger connected). Otherwise the tablet display goes away 10 s after closing the lid.")
+        Trouble(Icons.Rounded.CheckCircle, "Extend not available", "Windows needs the PlexiChore virtual display driver. Mirror always works.", last = true)
+    }
+}
+
+/** Emergency release + in-stream controls (left column on tablets, under the steps). */
+@Composable
+private fun StreamingInfo() {
+    val c = Plexi.colors
+    GlassCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(24.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Rounded.Warning, null, tint = c.danger, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.width(10.dp))
+            Text("Mac screen black or stuck?", style = MaterialTheme.typography.titleLarge, color = c.textPrimary)
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "On the Mac press ⌃⌥⌘D (Control-Option-Command-D), or choose Release Extended Display in the PlexiChore menu bar menu. " +
+                "The tablet display is removed at once and your screens come back; the tablet mirrors for a short while.",
+            style = MaterialTheme.typography.bodyMedium, color = c.textSecondary,
+        )
+    }
+    GlassCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(24.dp)) {
+        Text("While streaming", style = MaterialTheme.typography.titleLarge, color = c.textPrimary)
+        Spacer(Modifier.height(16.dp))
+        Trouble(Icons.Rounded.TouchApp, "Show the controls", "Swipe down from the top edge or tap with three fingers.")
+        Trouble(Icons.Rounded.FormatSize, "Text too small or large", "Use − / + in the controls (or Settings › Display size). The screen blanks for about a second while it resizes.")
+        Trouble(Icons.Rounded.Mouse, "Touch, Mouse or Input off", "Tap the input button in the controls to switch between them.")
+        Trouble(Icons.Rounded.Close, "Disconnect", "Tap × in the controls. Your computer's screens go back to normal.", last = true)
     }
 }
 

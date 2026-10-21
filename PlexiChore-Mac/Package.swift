@@ -46,6 +46,12 @@ let package = Package(
                 .linkedFramework("SystemConfiguration"),
                 .linkedFramework("UserNotifications")
             ]
+        ),
+        // Unit tests of the pure logic (`swift test`); @testable import of the executable target.
+        .testTarget(
+            name: "PlexiChoreTests",
+            dependencies: ["PlexiChore"],
+            path: "Tests/PlexiChoreTests"
         )
     ]
 )

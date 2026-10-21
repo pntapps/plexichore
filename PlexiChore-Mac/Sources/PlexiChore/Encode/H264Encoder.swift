@@ -7,11 +7,20 @@ import VideoToolbox
 protocol VideoEncoder: AnyObject {
     /// `onPacket(data, flags, ptsMicros)` — data is ready to put in a VIDEO message.
     var onPacket: ((Data, VideoFlags, UInt64) -> Void)? { get set }
+    /// Asynchronous encoder failure ("encoder:<message>", Windows `MfH264Encoder.Error`). Called at most once.
+    var onError: ((String) -> Void)? { get set }
     func encode(_ pixelBuffer: CVPixelBuffer, ptsMicros: UInt64, forceKeyframe: Bool)
     func setBitrate(kbps: Int)
+    /// Cadence-only change (no new stream / IDR).
+    func setFrameRate(_ fps: Int)
     func invalidate()
     /// Average time spent encoding one frame (ms), for STATS.
     var averageEncodeMs: Double { get }
+    /// CONFIG `encoder` (informational), Windows format: "hw:<name>" | "sw:<name>".
+    var name: String { get }
+    var isHardware: Bool { get }
+    /// "h264" | "mjpeg" (CONFIG `codec`).
+    var codec: String { get }
 }
 
 enum EncoderError: LocalizedError {
@@ -24,81 +33,105 @@ enum EncoderError: LocalizedError {
 }
 
 /// VideoToolbox H.264, real-time, low latency, no B-frames, Annex-B output.
-/// Every keyframe is preceded by a separate codec-config packet (SPS+PPS, flag bit1).
+/// Every keyframe is preceded by a separate codec-config packet (SPS+PPS, flag bit1) — same split as Windows
+/// `MfH264Encoder.EmitAnnexB` (the IDR access unit itself carries no SPS/PPS).
 final class H264Encoder: VideoEncoder, @unchecked Sendable {
     var onPacket: ((Data, VideoFlags, UInt64) -> Void)?
+    var onError: ((String) -> Void)?
 
     private var session: VTCompressionSession?
     private let width: Int
     private let height: Int
-    private let fps: Int
+    private var fps: Int
+    private let keyframeIntervalSeconds: Double
     private let lock = NSLock()
     private var encodeStart: [UInt64: UInt64] = [:]   // pts -> wall micros
     private var emaEncodeMs: Double = 0
+    private var consecutiveErrors = 0
+    private var errorReported = false
+
+    let isHardware: Bool
+    let name: String
+    let codec = "h264"
 
     private static let startCode: [UInt8] = [0, 0, 0, 1]
+    /// kVTInvalidSessionErr: the session died (GPU reset, sleep/wake) — no point retrying frames.
+    private static let invalidSession: OSStatus = -12903
+    private static let maxConsecutiveErrors = 3
 
     var averageEncodeMs: Double {
         lock.lock(); defer { lock.unlock() }
         return emaEncodeMs
     }
 
-    init(width: Int, height: Int, fps: Int, bitrateKbps: Int, quality: String, keyframeIntervalSeconds: Double) throws {
+    /// `allowHardware` false forces Apple's software H.264 encoder (Windows `_disallowHw` after an encoder failure,
+    /// or the "Preferred video encoder: software" setting).
+    init(width: Int, height: Int, fps: Int, bitrateKbps: Int, quality: String, keyframeIntervalSeconds: Double,
+         profile: SessionPolicy.H264Profile = .high, allowHardware: Bool = true) throws {
         self.width = width
         self.height = height
         self.fps = max(1, fps)
+        self.keyframeIntervalSeconds = max(1.0, keyframeIntervalSeconds)
 
-        var spec: [CFString: Any] = [
-            kVTVideoEncoderSpecification_EnableHardwareAcceleratedVideoEncoder: true
-        ]
-        // Low-latency rate control (macOS 11.3+; our minimum is 13).
-        spec[kVTVideoEncoderSpecification_EnableLowLatencyRateControl] = true
+        var specs: [[CFString: Any]] = []
+        if allowHardware {
+            // Low-latency rate control (macOS 11.3+; our minimum is 13), then plain hardware if LL rejects the size.
+            // Require… makes the "hw" attempt really hardware (else creation fails and the chain moves on to software).
+            specs.append([kVTVideoEncoderSpecification_EnableHardwareAcceleratedVideoEncoder: true,
+                          kVTVideoEncoderSpecification_RequireHardwareAcceleratedVideoEncoder: true,
+                          kVTVideoEncoderSpecification_EnableLowLatencyRateControl: true])
+            specs.append([kVTVideoEncoderSpecification_EnableHardwareAcceleratedVideoEncoder: true,
+                          kVTVideoEncoderSpecification_RequireHardwareAcceleratedVideoEncoder: true])
+        } else {
+            specs.append([kVTVideoEncoderSpecification_EnableHardwareAcceleratedVideoEncoder: false])
+        }
 
         var created: VTCompressionSession?
-        var status = VTCompressionSessionCreate(
-            allocator: kCFAllocatorDefault,
-            width: Int32(width),
-            height: Int32(height),
-            codecType: kCMVideoCodecType_H264,
-            encoderSpecification: spec as CFDictionary,
-            imageBufferAttributes: nil,
-            compressedDataAllocator: nil,
-            outputCallback: nil,
-            refcon: nil,
-            compressionSessionOut: &created)
-        if status != noErr || created == nil {
-            // Retry without low-latency mode (e.g. unusual sizes the LL encoder rejects).
+        var status: OSStatus = -1
+        for spec in specs {
             created = nil
             status = VTCompressionSessionCreate(
                 allocator: kCFAllocatorDefault,
                 width: Int32(width),
                 height: Int32(height),
                 codecType: kCMVideoCodecType_H264,
-                encoderSpecification: nil,
+                encoderSpecification: spec as CFDictionary,
                 imageBufferAttributes: nil,
                 compressedDataAllocator: nil,
                 outputCallback: nil,
                 refcon: nil,
                 compressionSessionOut: &created)
+            if status == noErr, created != nil { break }
         }
         guard status == noErr, let s = created else { throw EncoderError.sessionCreation(status) }
         session = s
 
+        var hw: CFTypeRef?
+        let hwStatus = VTSessionCopyProperty(s, key: kVTCompressionPropertyKey_UsingHardwareAcceleratedVideoEncoder,
+                                             allocator: nil, valueOut: &hw)
+        let usingHW = hwStatus == noErr ? ((hw as? Bool) ?? (hw as? NSNumber)?.boolValue ?? allowHardware) : allowHardware
+        isHardware = usingHW
+        // Profile from HELLO h264Profiles (SessionPolicy.h264Profile); level is left to VideoToolbox.
+        let level: CFString
+        let profileName: String
+        switch profile {
+        case .high: level = kVTProfileLevel_H264_High_AutoLevel; profileName = "High"
+        case .main: level = kVTProfileLevel_H264_Main_AutoLevel; profileName = "Main"
+        case .baseline: level = kVTProfileLevel_H264_Baseline_AutoLevel; profileName = "Baseline"
+        }
+        name = (usingHW ? "hw:" : "sw:") + "VideoToolbox H.264 \(profileName)"
+
         set(s, kVTCompressionPropertyKey_RealTime, kCFBooleanTrue)
         set(s, kVTCompressionPropertyKey_AllowFrameReordering, kCFBooleanFalse)
-        let profile: CFString = quality == "performance"
-            ? kVTProfileLevel_H264_Main_AutoLevel
-            : kVTProfileLevel_H264_High_AutoLevel
-        set(s, kVTCompressionPropertyKey_ProfileLevel, profile)
-        set(s, kVTCompressionPropertyKey_H264EntropyMode, kVTH264EntropyMode_CABAC)
-        set(s, kVTCompressionPropertyKey_ExpectedFrameRate, NSNumber(value: self.fps))
-        let interval = max(1.0, keyframeIntervalSeconds)
-        set(s, kVTCompressionPropertyKey_MaxKeyFrameInterval, NSNumber(value: Int(Double(self.fps) * interval)))
-        set(s, kVTCompressionPropertyKey_MaxKeyFrameIntervalDuration, NSNumber(value: interval))
+
+        set(s, kVTCompressionPropertyKey_ProfileLevel, level)
+        // Baseline has no CABAC.
+        set(s, kVTCompressionPropertyKey_H264EntropyMode, profile == .baseline ? kVTH264EntropyMode_CAVLC : kVTH264EntropyMode_CABAC)
         set(s, kVTCompressionPropertyKey_MaximizePowerEfficiency, kCFBooleanFalse)
         if quality == "performance" {
             set(s, kVTCompressionPropertyKey_PrioritizeEncodingSpeedOverQuality, kCFBooleanTrue)
         }
+        applyFrameRate(s)
         applyBitrate(s, kbps: bitrateKbps)
         VTCompressionSessionPrepareToEncodeFrames(s)
     }
@@ -126,6 +159,34 @@ final class H264Encoder: VideoEncoder, @unchecked Sendable {
         applyBitrate(s, kbps: kbps)
     }
 
+    private func applyFrameRate(_ s: VTCompressionSession) {
+        set(s, kVTCompressionPropertyKey_ExpectedFrameRate, NSNumber(value: fps))
+        set(s, kVTCompressionPropertyKey_MaxKeyFrameInterval, NSNumber(value: Int(Double(fps) * keyframeIntervalSeconds)))
+        set(s, kVTCompressionPropertyKey_MaxKeyFrameIntervalDuration, NSNumber(value: keyframeIntervalSeconds))
+    }
+
+    func setFrameRate(_ newFps: Int) {
+        guard let s = session else { return }
+        lock.lock(); fps = max(1, newFps); lock.unlock()
+        applyFrameRate(s)
+    }
+
+    /// Counts failures; reports "encoder:..." once after a dead session or a few failures in a row.
+    private func noteResult(_ status: OSStatus) {
+        lock.lock()
+        if status == noErr {
+            consecutiveErrors = 0
+            lock.unlock()
+            return
+        }
+        consecutiveErrors += 1
+        let report = !errorReported && (status == Self.invalidSession || consecutiveErrors >= Self.maxConsecutiveErrors)
+        if report { errorReported = true }
+        let cb = onError
+        lock.unlock()
+        if report { cb?("encoder:VideoToolbox status \(status)") }
+    }
+
     func invalidate() {
         guard let s = session else { return }
         session = nil
@@ -136,7 +197,8 @@ final class H264Encoder: VideoEncoder, @unchecked Sendable {
     func encode(_ pixelBuffer: CVPixelBuffer, ptsMicros: UInt64, forceKeyframe: Bool) {
         guard let s = session else { return }
         let pts = CMTime(value: CMTimeValue(ptsMicros), timescale: 1_000_000)
-        let duration = CMTime(value: 1, timescale: CMTimeScale(fps))
+        lock.lock(); let curFps = fps; lock.unlock()
+        let duration = CMTime(value: 1, timescale: CMTimeScale(curFps))
         var props: CFDictionary?
         if forceKeyframe {
             props = [kVTEncodeFrameOptionKey_ForceKeyFrame: kCFBooleanTrue as Any] as CFDictionary
@@ -155,11 +217,13 @@ final class H264Encoder: VideoEncoder, @unchecked Sendable {
             infoFlagsOut: nil
         ) { [weak self] encodeStatus, infoFlags, sampleBuffer in
             guard let self else { return }
+            self.noteResult(encodeStatus)
             guard encodeStatus == noErr, let sampleBuffer, !infoFlags.contains(.frameDropped) else { return }
             self.handleOutput(sampleBuffer)
         }
         if status != noErr {
             lock.lock(); encodeStart[ptsMicros] = nil; lock.unlock()
+            noteResult(status)
         }
     }
 

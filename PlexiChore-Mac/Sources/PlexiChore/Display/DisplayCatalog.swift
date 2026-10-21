@@ -39,7 +39,10 @@ enum DisplayCatalog {
         let skip = excluded()
         let main = CGMainDisplayID()
         // Hide hardware-mirrored secondaries; keep only mirror-set masters.
-        var filtered = ids.filter { !skip.contains($0) && (CGDisplayMirrorsDisplay($0) == 0) }
+        // Also skip every PlexiChore virtual display (vendor 0x5058), even one that is being torn down / no longer
+        // tracked, so a mirror fallback after a safety release never picks the dying display.
+        var filtered = ids.filter { !skip.contains($0) && CGDisplayMirrorsDisplay($0) == 0
+                                    && CGDisplayVendorNumber($0) != DisplayProbe.plexiVendor }
         filtered.sort { a, b in
             if a == b { return false }
             if a == main { return true }

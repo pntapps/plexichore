@@ -8,7 +8,7 @@ PlexiChore turns an Android tablet into a portable monitor for a Windows or macO
 
 ## Transports
 1. **USB**: Host runs `adb reverse tcp:47800 tcp:47800` for every authorized device (re-run whenever `adb devices` changes). Tablet connects to `127.0.0.1:47800`. Tablet should probe 127.0.0.1:47800 periodically and show it as a host labelled "USB".
-2. **Wi-Fi**: Host broadcasts a UDP beacon to `255.255.255.255:47801` (and every interface's broadcast address) once per second. Tablet listens on UDP 47801. Tablet may also send the ASCII datagram `PLEXI?` to broadcast:47801; hosts reply unicast with the beacon to the sender's address/port. When broadcasts are filtered (AP isolation, multicast/broadcast enhancement, mesh, enterprise Wi-Fi) and nothing answered within ~4 s, the tablet also sends `PLEXI?` by unicast to every address of its own subnet (capped at a /24, batched, every 15 s) and to the last host it streamed from; hosts answer exactly as for a broadcast probe. Android 17+ (targetSdk 37) needs the runtime permission `ACCESS_LOCAL_NETWORK` for any of this; USB (adb reverse) does not.
+2. **Wi-Fi**: Host broadcasts a UDP beacon to `255.255.255.255:47801` (and every interface's broadcast address) once per second. Tablet listens on UDP 47801. Tablet may also send the ASCII datagram `PLEXI?` to broadcast:47801; hosts reply unicast with the beacon to the sender's address/port (a probe matches when its first ≤ 16 bytes, with trailing NUL/CR/LF/space removed, are exactly `PLEXI?`). When broadcasts are filtered (AP isolation, multicast/broadcast enhancement, mesh, enterprise Wi-Fi) and nothing answered within ~4 s, the tablet also sends `PLEXI?` by unicast to every address of its own subnet (capped at a /24, batched, every 15 s) and to the last host it streamed from; hosts answer exactly as for a broadcast probe. Android 17+ (targetSdk 37) needs the runtime permission `ACCESS_LOCAL_NETWORK` for any of this; USB (adb reverse) does not.
    Beacon payload (UTF-8 JSON):
    ```json
    {"svc":"plexichore","v":1,"id":"<stable uuid>","name":"DESKTOP-ABC","os":"windows|macos","port":47800,"virtualDisplay":true}
@@ -69,6 +69,11 @@ Every message: `u8 type | u32 length | payload[length]`. Max payload 16 MiB. TCP
   "viewportWidthPx": 2560, "viewportHeightPx": 1600 // current display window size (split screen / freeform / DeX may be smaller)
 }
 ```
+Missing fields (clarification, matches the Windows host): a `requested` member that is absent (or `requested` itself)
+takes these defaults — `mode` **"mirror"**, `monitorIndex` 0, `resolutionScale` 1.0, `fps` 60, `bitrateKbps` 20000,
+`quality` "balanced", `codec` "h264", `touchMode` "touch", `position` "right", `scalePercent` 0, `orientation`
+"landscape". Unknown `mode` values also mean "mirror". Tablets should always send `mode`.
+
 Decode capabilities: `maxDecodeWidth/Height` is the largest size in `decodeModes` (or the native size when the decoder
 publishes nothing better). The host MUST NOT send a frame size/fps the tablet cannot decode: if the requested size fits a
 mode but the fps is too high it lowers the fps (minimum 30); if the size fits no mode it shrinks to the largest mode with
@@ -123,6 +128,10 @@ then count × {
 }
 ```
 Every pointer's current state is included in each event (like Android MotionEvent). Host maps to: touch → Windows touch injection (InjectSyntheticPointerInput / InjectTouchInput) or SendInput mouse when touchMode="mouse"; pen → pen injection; macOS → CGEvent mouse events.
+Robustness (clarification, both hosts): hosts parse `min(count, (payloadLength - 1) / 24)` pointers: a truncated event keeps its complete pointers, extra
+trailing bytes are ignored, an empty payload or `count` 0 is a no-op (tablets must still send 1..10 complete pointers).
+A pointer with an unknown `kind` is ignored; an unknown `action` is ignored for touch/pen and treated as a move for
+mouse/scroll.
 
 ## Session flow
 1. Tablet connects, sends HELLO.

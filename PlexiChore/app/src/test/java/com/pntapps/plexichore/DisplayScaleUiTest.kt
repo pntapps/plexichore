@@ -25,4 +25,18 @@ class DisplayScaleUiTest {
         assertEquals("1.75×", DisplayScaleUi.factor(175))
         assertEquals("Text and pointer at 2×", DisplayScaleUi.preview(200, 320, 1f))
     }
+
+    @Test fun largerAndSmaller() {
+        // Auto counts as what the host applied (200% on a Tab S8)
+        assertEquals(225, DisplayScaleUi.larger(0, 200))
+        assertEquals(175, DisplayScaleUi.smaller(0, 200))
+        // before CONFIG: Auto assumed 200
+        assertEquals(225, DisplayScaleUi.larger(0, 0))
+        assertEquals(250, DisplayScaleUi.larger(225, 200))
+        assertEquals(null, DisplayScaleUi.larger(250, 200))
+        assertEquals(null, DisplayScaleUi.smaller(150, 200))
+        // an applied value between steps moves to the neighbouring step
+        assertEquals(150, DisplayScaleUi.larger(0, 125))
+        assertEquals(null, DisplayScaleUi.smaller(0, 125))
+    }
 }

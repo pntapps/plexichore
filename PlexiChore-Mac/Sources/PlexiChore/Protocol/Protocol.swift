@@ -109,6 +109,10 @@ struct RequestedSettings: Codable, Equatable {
     var codec: String?           // "h264" | "mjpeg"
     var touchMode: String?       // "touch" | "mouse" | "none"
     var position: String?        // "right" | "left" | "top" | "bottom"
+    // Additive (PROTOCOL.md): 0 = auto, else 100|125|...|300 (snapped by SessionPolicy.sanitizeScaleRequest).
+    var scalePercent: Int?
+    // Additive: "landscape" (default) | "portrait"; also sent alone in SETTINGS when the tablet rotates.
+    var orientation: String?
 
     /// Returns self overlaid with every non-nil field of `other`.
     func merged(with other: RequestedSettings) -> RequestedSettings {
@@ -122,12 +126,24 @@ struct RequestedSettings: Codable, Equatable {
         if let v = other.codec { r.codec = v }
         if let v = other.touchMode { r.touchMode = v }
         if let v = other.position { r.position = v }
+        if let v = other.scalePercent { r.scalePercent = v }
+        if let v = other.orientation { r.orientation = v }
         return r
     }
 
+    /// Values for fields a HELLO `requested` object leaves out — Windows `RequestedSettings` property initializers
+    /// (Protocol.cs). In particular a HELLO without `requested.mode` (or without `requested`) means **mirror**, like
+    /// Windows; PROTOCOL.md documents this. Android always sends `mode`.
     static let defaults = RequestedSettings(
-        mode: "extend", monitorIndex: 0, resolutionScale: 1.0, fps: 60, bitrateKbps: 20_000,
-        quality: "balanced", codec: "h264", touchMode: "touch", position: "right")
+        mode: "mirror", monitorIndex: 0, resolutionScale: 1.0, fps: 60, bitrateKbps: 20_000,
+        quality: "balanced", codec: "h264", touchMode: "touch", position: "right",
+        scalePercent: 0, orientation: "landscape")
+
+    /// The session's initial `requested` from a HELLO: `defaults` overlaid with what the tablet sent
+    /// (Windows: `_hello.Requested ??= new RequestedSettings()` → missing members keep their initializers).
+    static func initial(from hello: HelloMessage) -> RequestedSettings {
+        defaults.merged(with: hello.requested ?? RequestedSettings())
+    }
 }
 
 struct HelloMessage: Codable {
@@ -145,6 +161,25 @@ struct HelloMessage: Codable {
     var touch: Bool?
     var pen: Bool?
     var requested: RequestedSettings?
+    // ---- additive, optional (older tablets don't send them) ----
+    /// Sizes the decoder really handles (landscape; rotated sizes equally valid) with their max fps.
+    var decodeModes: [DecodeMode]?
+    /// H.264 profiles the decoder supports, best first ("high", "main", "baseline").
+    var h264Profiles: [String]?
+    /// Highest H.264 level, e.g. "5.1" (Android sends "" when unknown).
+    var h264MaxLevel: String?
+    /// Orientation at connect time: "landscape" | "portrait".
+    var orientation: String?
+    /// Current display window size (split screen / freeform / DeX may be smaller than widthPx/heightPx).
+    var viewportWidthPx: Int?
+    var viewportHeightPx: Int?
+}
+
+/// One entry of HELLO `decodeModes`.
+struct DecodeMode: Codable, Equatable {
+    var width: Int
+    var height: Int
+    var maxFps: Int
 }
 
 struct MonitorInfo: Codable, Equatable, Identifiable, Hashable {
@@ -166,6 +201,13 @@ struct ConfigMessage: Codable, Equatable {
     var hostOs: String
     var monitors: [MonitorInfo]
     var virtualDisplayAvailable: Bool
+    // ---- additive, optional (omitted from JSON when nil) ----
+    /// Encoder in use (informational), e.g. "hw:VideoToolbox H.264".
+    var encoder: String? = nil
+    /// Display scale applied to the virtual display in percent; 0 = mirror / unknown.
+    var scalePercent: Int? = nil
+    /// "usb-cable" | "usb-wireless-adb" | "usb-tether" | "wifi"; nil = unknown (omitted).
+    var link: String? = nil
 }
 
 struct PairingMessage: Codable {
@@ -174,9 +216,9 @@ struct PairingMessage: Codable {
 }
 
 struct StatsMessage: Codable {
-    var captureFps: Double
-    var encodeMs: Double
-    var bitrateKbps: Double
+    var captureFps: Double      // frames encoded + sent per second, 1 decimal (Windows: Math.Round(fps, 1))
+    var encodeMs: Double        // 2 decimals (Windows: Math.Round(encMs, 2))
+    var bitrateKbps: Int        // integer like Windows `int BitrateKbps`
 }
 
 struct KeyMessage: Codable {
@@ -193,6 +235,182 @@ struct BeaconMessage: Codable {
     var os = "macos"
     var port = Int(PlexiProtocol.tcpPort)
     var virtualDisplay: Bool
+}
+
+// MARK: - Lenient JSON decoding (Windows parity: Wire.Json = case-insensitive keys, numbers from strings)
+
+/// Any JSON value. Decoding never fails on a type, so one odd field can't reject a whole HELLO / SETTINGS
+/// (Windows `JsonSerializerOptions { PropertyNameCaseInsensitive, AllowReadingFromString }`).
+enum JSONValue: Decodable, Equatable {
+    case null
+    case bool(Bool)
+    case number(Double)
+    case string(String)
+    case array([JSONValue])
+    case object([String: JSONValue])
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.singleValueContainer()
+        if c.decodeNil() { self = .null }
+        else if let d = try? c.decode(Double.self) { self = .number(d) }
+        else if let b = try? c.decode(Bool.self) { self = .bool(b) }
+        else if let s = try? c.decode(String.self) { self = .string(s) }
+        else if let a = try? c.decode([JSONValue].self) { self = .array(a) }
+        else if let o = try? c.decode([String: JSONValue].self) { self = .object(o) }
+        else { self = .null }
+    }
+
+    var intValue: Int? {
+        switch self {
+        case .number(let d): return d.isFinite && abs(d) < 1e15 ? Int(d.rounded(.toNearestOrEven)) : nil
+        case .string(let s):
+            let t = s.trimmingCharacters(in: .whitespaces)
+            if let i = Int(t) { return i }
+            if let d = Double(t), d.isFinite, abs(d) < 1e15 { return Int(d.rounded(.toNearestOrEven)) }
+            return nil
+        default: return nil
+        }
+    }
+
+    var doubleValue: Double? {
+        switch self {
+        case .number(let d): return d
+        case .string(let s): return Double(s.trimmingCharacters(in: .whitespaces))
+        default: return nil
+        }
+    }
+
+    var stringValue: String? {
+        switch self {
+        case .string(let s): return s
+        case .number(let d): return d == d.rounded() && abs(d) < 1e15 ? String(Int(d)) : String(d)
+        case .bool(let b): return b ? "true" : "false"
+        default: return nil
+        }
+    }
+
+    var boolValue: Bool? {
+        switch self {
+        case .bool(let b): return b
+        case .number(let d): return d != 0
+        case .string(let s):
+            switch s.trimmingCharacters(in: .whitespaces).lowercased() {
+            case "true", "1": return true
+            case "false", "0": return false
+            default: return nil
+            }
+        default: return nil
+        }
+    }
+}
+
+/// Coding key for arbitrary member names.
+struct AnyCodingKey: CodingKey {
+    var stringValue: String
+    var intValue: Int?
+    init(stringValue: String) { self.stringValue = stringValue }
+    init?(intValue: Int) { self.stringValue = String(intValue); self.intValue = intValue }
+}
+
+/// A JSON object with case-insensitive member lookup; `null` members count as absent.
+struct LenientObject {
+    private var members: [String: JSONValue] = [:]
+
+    init(_ decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: AnyCodingKey.self)   // throws when the payload isn't an object
+        for key in c.allKeys {
+            guard let v = try? c.decode(JSONValue.self, forKey: key), v != .null else { continue }
+            members[key.stringValue.lowercased()] = v
+        }
+    }
+
+    init(_ members: [String: JSONValue]) {
+        for (k, v) in members where v != .null { self.members[k.lowercased()] = v }
+    }
+
+    subscript(_ key: String) -> JSONValue? { members[key.lowercased()] }
+    func int(_ key: String) -> Int? { self[key]?.intValue }
+    func double(_ key: String) -> Double? { self[key]?.doubleValue }
+    func string(_ key: String) -> String? { self[key]?.stringValue }
+    func bool(_ key: String) -> Bool? { self[key]?.boolValue }
+    func strings(_ key: String) -> [String]? {
+        guard case .array(let a)? = self[key] else { return nil }
+        return a.compactMap(\.stringValue)
+    }
+    func object(_ key: String) -> LenientObject? {
+        guard case .object(let o)? = self[key] else { return nil }
+        return LenientObject(o)
+    }
+    func objects(_ key: String) -> [LenientObject]? {
+        guard case .array(let a)? = self[key] else { return nil }
+        return a.compactMap { if case .object(let o) = $0 { return LenientObject(o) } else { return nil } }
+    }
+}
+
+extension RequestedSettings {
+    init(from decoder: Decoder) throws {
+        self.init(try LenientObject(decoder))
+    }
+
+    init(_ o: LenientObject) {
+        self.init()
+        mode = o.string("mode")
+        monitorIndex = o.int("monitorIndex")
+        resolutionScale = o.double("resolutionScale")
+        fps = o.int("fps")
+        bitrateKbps = o.int("bitrateKbps")
+        quality = o.string("quality")
+        codec = o.string("codec")
+        touchMode = o.string("touchMode")
+        position = o.string("position")
+        scalePercent = o.int("scalePercent")
+        orientation = o.string("orientation")
+    }
+}
+
+extension DecodeMode {
+    init(from decoder: Decoder) throws {
+        let o = try LenientObject(decoder)
+        self.init(o)
+    }
+
+    init(_ o: LenientObject) {
+        self.init(width: o.int("width") ?? 0, height: o.int("height") ?? 0, maxFps: o.int("maxFps") ?? 0)
+    }
+}
+
+extension HelloMessage {
+    init(from decoder: Decoder) throws {
+        let o = try LenientObject(decoder)
+        self.init()
+        `protocol` = o.int("protocol")
+        deviceId = o.string("deviceId")
+        deviceName = o.string("deviceName")
+        model = o.string("model")
+        widthPx = o.int("widthPx")
+        heightPx = o.int("heightPx")
+        densityDpi = o.int("densityDpi")
+        refreshHz = o.double("refreshHz")
+        codecs = o.strings("codecs")
+        maxDecodeWidth = o.int("maxDecodeWidth")
+        maxDecodeHeight = o.int("maxDecodeHeight")
+        touch = o.bool("touch")
+        pen = o.bool("pen")
+        requested = o.object("requested").map(RequestedSettings.init(_:))
+        decodeModes = o.objects("decodeModes")?.map(DecodeMode.init(_:))
+        h264Profiles = o.strings("h264Profiles")
+        h264MaxLevel = o.string("h264MaxLevel")
+        orientation = o.string("orientation")
+        viewportWidthPx = o.int("viewportWidthPx")
+        viewportHeightPx = o.int("viewportHeightPx")
+    }
+}
+
+extension KeyMessage {
+    init(from decoder: Decoder) throws {
+        let o = try LenientObject(decoder)
+        self.init(action: o.string("action"), keyCode: o.int("keyCode"), text: o.string("text"))
+    }
 }
 
 // MARK: - INPUT
@@ -219,17 +437,25 @@ struct PointerState {
 enum InputParser {
     static let pointerSize = 4 + 5 * 4   // 4 x u8 + 5 x f32 = 24 bytes
 
-    /// Parses an INPUT payload. Returns nil when malformed.
-    static func parse(_ payload: Data) -> [PointerState]? {
-        guard payload.count >= 1 else { return nil }
-        let count = Int(payload.u8(at: 0))
-        guard count >= 1, count <= 10, payload.count >= 1 + count * pointerSize else { return nil }
+    /// Parses an INPUT payload exactly like Windows `PointerSample.Parse` (Protocol.cs): an empty payload yields no
+    /// pointers, and `count` is clamped to the whole 24-byte records actually present — `min(count, (len - 1) / 24)` —
+    /// so a truncated event still delivers its complete pointers (no 1...10 range check either; trailing bytes are
+    /// ignored). Unknown values follow what Windows' InputInjector does with them: an unknown kind is skipped; an
+    /// unknown action is skipped for touch/pen (their switches have no default) but behaves like a move for mouse
+    /// (`HandleMouse` presses `buttons` for any action other than down/up/cancel) and scroll (`HandleScroll` ignores
+    /// the action).
+    static func parse(_ payload: Data) -> [PointerState] {
+        guard payload.count >= 1 else { return [] }
+        let count = min(Int(payload.u8(at: 0)), (payload.count - 1) / pointerSize)
         var result: [PointerState] = []
         result.reserveCapacity(count)
         for i in 0..<count {
             let o = 1 + i * pointerSize
-            guard let kind = PointerKind(rawValue: payload.u8(at: o)),
-                  let action = PointerAction(rawValue: payload.u8(at: o + 1)) else { continue }
+            guard let kind = PointerKind(rawValue: payload.u8(at: o)) else { continue }
+            let action: PointerAction
+            if let a = PointerAction(rawValue: payload.u8(at: o + 1)) { action = a }
+            else if kind == .mouse || kind == .scroll { action = .move }
+            else { continue }
             let p = PointerState(
                 kind: kind,
                 action: action,

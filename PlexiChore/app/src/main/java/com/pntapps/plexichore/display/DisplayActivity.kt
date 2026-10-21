@@ -105,8 +105,7 @@ class DisplayActivity : ComponentActivity() {
                         },
                         onRegion = ::onRegion,
                         orientationHint = orientationHint.value,
-                        onCycleScale = {
-                            val next = DisplayScaleUi.next(core.settings.value.scalePercent)
+                        onSetScale = { next ->
                             core.updateSettings(core.settings.value.copy(scalePercent = next))
                             lifecycleScope.launch { SettingsRepository.get(this@DisplayActivity).updateStream { it.copy(scalePercent = next) } }
                             scheduleHide()

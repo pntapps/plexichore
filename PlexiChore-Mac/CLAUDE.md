@@ -2,25 +2,46 @@
 
 Read `../CLAUDE.md` and `../PROTOCOL.md` first. Human docs: `README.md`.
 
-## ⚠️ Status: written on Windows, NEVER compiled or run
-Everything here was authored without a Mac. Your first job on a MacBook:
-1. `swift build` (Swift 5.9 tools, Swift 5 language mode, macOS 13+) — fix compile errors. Likely spots: `@MainActor` AppDelegate overriding `init()`; `CFArray as NSArray?` cast in `Encode/H264Encoder.swift` (`isKeyframe`); `Text.tracking` availability on macOS 13; ARC for the ObjC target `CVirtualDisplay` (`-fobjc-arc` unsafe flag in Package.swift); Swift concurrency isolation warnings (classes marked `@unchecked Sendable`).
-2. `./scripts/build-app.sh` → `build/PlexiChore.app` (ad-hoc signed; set a stable signing identity so TCC permissions persist across rebuilds). Grant Screen Recording + Accessibility (+ Local Network on macOS 15).
-3. End-to-end with an Android tablet: build/install the Android app (`../PlexiChore/CLAUDE.md`), USB via `adb reverse tcp:47800 tcp:47800` (the app's ADBManager does it; Homebrew adb at /opt/homebrew/bin), or Wi-Fi (UDP beacon). Verify in order: mirror → extend (CGVirtualDisplay) → input (click, drag, scroll direction, pen pressure) → reconnect.
-4. Check the private API: virtual display appears with correct size, HiDPI mode (points = pixels/2), placed beside the main display, disappears on release (kept 6 s for quick reconnect).
+## Status (2026-10-21)
+Compiles and runs on macOS 27 (Apple Silicon). Verified with the fake tablet (`tools/faketablet/faketablet.py --scenario …`)
+and partly with the real Tab S8 (mirror over USB). Still to verify on the tablet: see `../ROADMAP.md` P0 #1.
+- Build: `swift build`; tests: `swift test`. App: `OUT_DIR=<dir> ./scripts/build-app.sh` (`INSTALL=1` copies to
+  ~/Applications). Keep the repo out of iCloud-synced folders (it used to live in ~/Documents: codesigning the test bundle
+  failed on iCloud xattrs and conflict copies like `HostController 2.swift` broke the build). It lives in ~/Developer now.
+- Only one host on port 47800 and one user of the tablet at a time; never run the fake tablet and the real tablet together.
+- Display safety (after a black-screen incident with a flapping USB-C hub): `Display/DisplaySafety.swift`. Emergency release
+  ⌃⌥⌘D or `killall -USR1 PlexiChore`. Don't weaken the safety net without testing a real monitor hot-unplug.
 
 ## Code map (`Sources/PlexiChore/`)
-`App/` (PlexiChoreApp MenuBarExtra, HostController @MainActor hub, WindowManager) · `Protocol/Protocol.swift` (framing, JSON models, 24-byte INPUT pointers) · `Network/` (HostServer NWListener :47800, ClientSession, DiscoveryBeacon BSD-socket UDP broadcast :47801) · `Display/` (VirtualDisplayManager via `CVirtualDisplay` ObjC wrapper `PXVirtualDisplay`, DisplayCatalog) · `Capture/ScreenCapturer.swift` (ScreenCaptureKit, 420v) · `Encode/` (VideoToolbox H.264 low-latency, AVCC→Annex-B, SPS/PPS sent as separate VIDEO packet flags=0x02; MJPEG) · `Stream/` (pipeline, keep-alive frames, STATS) · `Input/` (CGEvent mouse/scroll/keys) · `USB/ADBManager.swift` · `System/` (permissions, SMAppService login item, prefs/trusted devices) · `UI/`.
+`App/` (PlexiChoreApp MenuBarExtra, HostController @MainActor hub, WindowManager) · `Protocol/Protocol.swift` (framing, JSON models, 24-byte INPUT pointers) · `Network/` (HostServer NWListener :47800, ClientSession, DiscoveryBeacon BSD-socket UDP broadcast :47801) · `Display/` (VirtualDisplayManager via `CVirtualDisplay` ObjC wrapper `PXVirtualDisplay`, DisplayCatalog, DisplayArrangement primary/restore, DisplaySafety) · `Capture/ScreenCapturer.swift` (ScreenCaptureKit, 420v) · `Encode/` (VideoToolbox H.264 low-latency, AVCC→Annex-B, SPS/PPS sent as separate VIDEO packet flags=0x02; MJPEG) · `Stream/` (pipeline, keep-alive frames, STATS) · `Input/` (CGEvent mouse/scroll/keys) · `USB/ADBManager.swift` · `System/` (permissions, SMAppService login item, prefs/trusted devices) · `UI/`.
 `Sources/CVirtualDisplay/` — private `CGVirtualDisplay*` declarations + `PXVirtualDisplay` wrapper (classes looked up via `NSClassFromString`, so missing API ⇒ mirror fallback).
 
 ## Protocol fields the Mac host doesn't implement yet (Windows does)
-Bring to parity after it compiles (see `../PROTOCOL.md`):
-- `requested.mode == "primary"` (make the virtual display the main display: `CGConfigureDisplayOrigin` to (0,0) for it / set as main via display config; restore on detach).
-- `requested.scalePercent` / CONFIG `scalePercent` (choose HiDPI vs 1× mode for the virtual display based on tablet `densityDpi`).
-- `requested.orientation` + SETTINGS `{"orientation":"portrait"}` (recreate the virtual display in portrait size), `viewportWidthPx/HeightPx`.
-- Decoder caps in HELLO: `decodeModes`, `h264Profiles`, `h264MaxLevel` — clamp size/fps/profile to them (Windows: `ClampToDecoder`, `H264ProfileForTablet` in Engine `Session.cs`).
-- CONFIG `link` (`usb-cable` | `usb-wireless-adb` | `usb-tether` | `wifi`) and `encoder` (informational).
-- Seamless resize: tablet accepts a mid-stream CONFIG with a new size followed by codec-config + IDR.
+Byte-level parity with `../PROTOCOL.md` / Windows Engine was implemented (unverified on a tablet): framing, HELLO (all
+additive fields, lenient JSON like Windows `Wire.Json`; missing `requested` members take the Windows defaults, so no
+`mode` = mirror — `RequestedSettings.initial(from:)`), INPUT (`min(count, (len-1)/24)` pointers like Windows
+`PointerSample.Parse`; unknown action = move for mouse/scroll), `PLEXI?` probe matching (Windows rules,
+NUL-trimmed), CONFIG (sent after the encoder exists: real `codec`, `encoder`, `scalePercent`, `link` with ≤ 0.4 s wait), SETTINGS (live bitrate/fps without IDR; size/codec/quality via in-place
+encoder swap = mid-stream CONFIG + codec-config + IDR; orientation/scale/mode recreate the virtual display), PING/PONG
+(self-stall guard, 5 s timeout), STATS (int kbps), PAIRING, BYE, encoder chain hw H.264 → sw H.264 → MJPEG with
+Windows failure escalation (`SessionPolicy.onPipelineEnded`). Remaining gaps — "not yet" on the Mac:
+- **Live `scalePercent` change** (SETTINGS with only `scalePercent`): Windows re-applies DPI without re-attaching. macOS
+  scale = the virtual display's backing/HiDPI mode: with the default `ScaleStrategy.scaled` every step except 100↔200
+  changes the backing size, which is the descriptor's fixed `maxPixelsWide/High`, and `PXVirtualDisplay` has no
+  live re-`applySettings` (flipping `hiDPI` on a live CGVirtualDisplay is undocumented and unverified). So the display
+  is re-created (windows on it get reshuffled; the stream restarts with a new IDR) unless the resolved mode is
+  unchanged (`VirtualDisplayRequest.sameDisplay`). CONFIG `scalePercent` is still correct. A live path would need a
+  display created with a large `maxPixels` + a multi-mode list, measured on hardware first.
+- **Adaptive encode-size ladder / steady-cadence fallback** (Windows `StreamPipeline.StatsWindow`: 1.0 → 0.75 → 0.625
+  under encoder backpressure, 40 fps on 120 Hz). The Mac has the mechanism (`StreamPipeline.reconfigure`) but no
+  heuristic (VideoToolbox is expected not to need it — unmeasured). Add only if the bench shows encoder-limited fps.
+- **Portrait "driver has no portrait mode" fallback**: n/a — CGVirtualDisplay takes any size, so portrait is always built.
+- Deliberate small differences (not wire format): SETTINGS received during pairing are merged and used once approved
+  (Windows drops them, so a rotation while the code is shown is lost); the Mac PINGs from connect instead of after
+  HELLO and answers a PING sent before HELLO (Windows answers anything but HELLO first with BYE "expected HELLO");
+  a JSON `null` in SETTINGS is "absent" (Windows resets strings to their default / rejects the whole SETTINGS for
+  numbers); STATS round half-away-from-zero instead of .NET's half-to-even (±0.1 fps cosmetic).
+- `viewportWidthPx/HeightPx` and `h264MaxLevel` are parsed but unused (Windows ignores them too).
 Then update this list and `../ROADMAP.md`.
 
 ## Notes

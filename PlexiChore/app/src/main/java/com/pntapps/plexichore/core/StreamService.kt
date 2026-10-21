@@ -120,8 +120,10 @@ class StreamService : Service() {
             }
             val open = PendingIntent.getActivity(
                 context, 0,
+                // REORDER_TO_FRONT: see DisplayLauncher (NEW_TASK|SINGLE_TOP alone can be dropped
+                // with START_DELIVERED_TO_TOP when the task's root identity is DisplayActivity).
                 Intent(context, DisplayActivity::class.java)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                    .addFlags(DisplayLauncher.launchFlags(fromActivity = false)),
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
             val stop = PendingIntent.getService(

@@ -26,7 +26,19 @@ final class ScreenCapturer: NSObject, SCStreamOutput, SCStreamDelegate, @uncheck
     var onStopped: ((Error) -> Void)?
 
     let sampleQueue: DispatchQueue
-    private var scStream: SCStream?
+    private var _scStream: SCStream?
+    private var _stopRequested = false
+    private let stateLock = NSLock()
+
+    private var scStream: SCStream? {
+        get { stateLock.lock(); defer { stateLock.unlock() }; return _scStream }
+        set { stateLock.lock(); _scStream = newValue; stateLock.unlock() }
+    }
+
+    private var stopRequested: Bool {
+        stateLock.lock(); defer { stateLock.unlock() }
+        return _stopRequested
+    }
 
     init(sampleQueue: DispatchQueue) {
         self.sampleQueue = sampleQueue
@@ -39,6 +51,7 @@ final class ScreenCapturer: NSObject, SCStreamOutput, SCStreamDelegate, @uncheck
         // A freshly created virtual display can take a moment to show up in SCShareableContent.
         var target: SCDisplay?
         for attempt in 0..<20 {
+            if stopRequested { throw CancellationError() }
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
             target = content.displays.first(where: { $0.displayID == displayID })
             if target != nil { break }
@@ -59,14 +72,35 @@ final class ScreenCapturer: NSObject, SCStreamOutput, SCStreamDelegate, @uncheck
 
         let s = SCStream(filter: filter, configuration: config, delegate: self)
         try s.addStreamOutput(self, type: .screen, sampleHandlerQueue: sampleQueue)
+        if stopRequested { throw CancellationError() }
         try await s.startCapture()
-        scStream = s
+        // stop() may have run while startCapture was pending: it found no stream, so stop this one now.
+        if !commit(s) {
+            try? await s.stopCapture()
+            throw CancellationError()
+        }
     }
 
     func stop() async {
-        guard let s = scStream else { return }
-        scStream = nil
+        guard let s = requestStop() else { return }
         try? await s.stopCapture()
+    }
+
+    /// Keeps `s` as the running stream unless stop() was requested meanwhile (then false).
+    private func commit(_ s: SCStream) -> Bool {
+        stateLock.lock(); defer { stateLock.unlock() }
+        if _stopRequested { return false }
+        _scStream = s
+        return true
+    }
+
+    /// Marks the capturer stopped and hands back the stream to stop, if any.
+    private func requestStop() -> SCStream? {
+        stateLock.lock(); defer { stateLock.unlock() }
+        _stopRequested = true
+        let s = _scStream
+        _scStream = nil
+        return s
     }
 
     /// Changes fps/size on the fly without restarting the stream.
@@ -101,7 +135,11 @@ final class ScreenCapturer: NSObject, SCStreamOutput, SCStreamDelegate, @uncheck
     // MARK: SCStreamDelegate
 
     func stream(_ stream: SCStream, didStopWithError error: Error) {
-        scStream = nil
-        onStopped?(error)
+        stateLock.lock()
+        let wasCurrent = _scStream === stream
+        if wasCurrent { _scStream = nil }
+        let stopping = _stopRequested
+        stateLock.unlock()
+        if wasCurrent && !stopping { onStopped?(error) }
     }
 }

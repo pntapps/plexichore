@@ -65,8 +65,10 @@ internal class StreamLayout(
 
     /**
      * Area the video must stay inside: the display cutout (camera notch / punch hole) and any
-     * *visible* system bars, caption bar (freeform / DeX / desktop windowing) or taskbar. In true
-     * immersive mode the hidden bars report 0, so the picture stays full-screen there.
+     * *visible* system bars, caption bar (freeform / DeX / desktop windowing) or taskbar. Hidden bars
+     * are skipped explicitly: Samsung keeps reporting the status bar and the taskbar (as
+     * navigationBars + tappableElement) while they're hidden in immersive mode, which letterboxed
+     * the picture on a Tab S8.
      */
     private var safeLeft = 0
     private var safeTop = 0
@@ -78,9 +80,13 @@ internal class StreamLayout(
         isMotionEventSplittingEnabled = false
         addView(surfaceView, 0)
         ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.captionBar() or WindowInsetsCompat.Type.tappableElement(),
-            )
+            var barTypes = 0
+            for (type in intArrayOf(WindowInsetsCompat.Type.statusBars(), WindowInsetsCompat.Type.navigationBars(), WindowInsetsCompat.Type.captionBar())) {
+                if (insets.isVisible(type)) barTypes = barTypes or type
+            }
+            // The taskbar counts only while it is actually shown (it travels with navigationBars).
+            if (insets.isVisible(WindowInsetsCompat.Type.navigationBars())) barTypes = barTypes or WindowInsetsCompat.Type.tappableElement()
+            val bars = if (barTypes == 0) Insets.NONE else insets.getInsets(barTypes)
             val cut = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
             val safe = Insets.max(bars, cut)
             if (safe.left != safeLeft || safe.top != safeTop || safe.right != safeRight || safe.bottom != safeBottom) {

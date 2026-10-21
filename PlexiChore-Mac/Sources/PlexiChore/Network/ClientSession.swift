@@ -25,7 +25,7 @@ final class ClientSession: @unchecked Sendable {
 
     /// Frames that may be dropped are refused once this many bytes are queued in the socket.
     private let maxPendingBytes = 3 * 1024 * 1024
-    private let deadAfterMicros: UInt64 = 5_000_000
+    private let deadAfterMicros = UInt64(SessionPolicy.deadAfter * 1_000_000)
 
     init(connection: NWConnection) {
         self.connection = connection
@@ -148,10 +148,11 @@ final class ClientSession: @unchecked Sendable {
         case .ping:
             sendRaw(Frame.make(.pong, payload), droppable: false)
         case .pong:
-            if payload.count >= 8 {
+            // Windows: exactly 8 bytes, 0 <= rtt < 60 s (a tablet echoing garbage can't fake an RTT).
+            if payload.count == 8 {
                 let sent = payload.u64BE(at: 0)
                 let now = Clock.nowMicros()
-                if now >= sent {
+                if now >= sent, now - sent < 60_000_000 {
                     onRTT?(self, Double(now - sent) / 1000.0)
                 }
             }
@@ -168,19 +169,24 @@ final class ClientSession: @unchecked Sendable {
     private func startHeartbeat() {
         let t = DispatchSource.makeTimerSource(queue: queue)
         t.schedule(deadline: .now() + 1, repeating: 1.0)
+        var lastTick = Clock.nowMicros()
         t.setEventHandler { [weak self] in
             guard let self else { return }
             let now = Clock.nowMicros()
+            // Windows KeepAliveLoopAsync: if this process itself stalled (tick > 2.5 s late), don't blame the tablet.
+            let stalled = now &- lastTick > UInt64(SessionPolicy.selfStallThreshold * 1_000_000)
+            lastTick = now
             self.lock.lock()
+            if stalled { self.lastReceived = now }
             let last = self.lastReceived
             self.lock.unlock()
-            if now > last && now - last > self.deadAfterMicros {
-                self.close(reason: "Timed out", sendBye: false)
-                return
-            }
+            // PING first (like Windows), then the liveness check.
             var payload = Data(capacity: 8)
             payload.appendBE(now)
             self.sendRaw(Frame.make(.ping, payload), droppable: false)
+            if now > last && now - last > self.deadAfterMicros {
+                self.close(reason: "timeout (no message for 5 s)", sendBye: false)
+            }
         }
         heartbeat = t
         t.resume()
@@ -265,6 +271,17 @@ final class ClientSession: @unchecked Sendable {
         default:
             return "\(endpoint)"
         }
+    }
+
+    /// Local address (host part) and interface the connection arrived on, for CONFIG `link`.
+    var localPathInfo: (address: String?, interface: String?) {
+        guard let path = connection.currentPath else { return (nil, nil) }
+        var address: String?
+        if let local = path.localEndpoint {
+            let d = Self.describe(local)
+            if let idx = d.lastIndex(of: ":"), !d.hasPrefix("[") { address = String(d[..<idx]) } else { address = d }
+        }
+        return (address, path.availableInterfaces.first?.name)
     }
 
     /// Host part only (used to tell Wi-Fi tablets apart in the UI).

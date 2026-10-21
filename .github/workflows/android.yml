@@ -1,0 +1,60 @@
+name: Android app
+
+on:
+  push:
+    branches: [main]
+    paths: ['PlexiChore/**', 'PROTOCOL.md', '.github/workflows/android.yml']
+  pull_request:
+    paths: ['PlexiChore/**', 'PROTOCOL.md', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: PlexiChore
+    steps:
+      - uses: actions/checkout@v4
+
+      # gradle/gradle-daemon-jvm.properties pins the daemon to JDK 25.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Assemble debug
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Unit tests (incl. Robolectric screenshot matrix)
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-test-reports-${{ github.run_number }}
+          path: PlexiChore/app/build/reports/tests/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PlexiChore-android-debug-${{ github.run_number }}
+          path: PlexiChore/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7

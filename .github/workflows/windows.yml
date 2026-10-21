@@ -1,0 +1,47 @@
+name: Windows host
+
+on:
+  push:
+    branches: [main]
+    paths: ['PlexiChore-Desktop/**', 'PROTOCOL.md', '.github/workflows/windows.yml']
+  pull_request:
+    paths: ['PlexiChore-Desktop/**', 'PROTOCOL.md', '.github/workflows/windows.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: PlexiChore-Desktop
+    env:
+      DOTNET_NOLOGO: '1'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: dotnet build PlexiChore.slnx -m:1 -c Release
+
+      - name: Test
+        run: dotnet test PlexiChore.slnx -c Release --no-build --logger "trx;LogFileName=tests.trx" --results-directory TestResults
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-test-results-${{ github.run_number }}
+          path: PlexiChore-Desktop/TestResults/
+          if-no-files-found: ignore
+          retention-days: 7
