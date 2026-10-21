@@ -31,7 +31,11 @@ jobs:
           distribution: temurin
           java-version: '25'
 
+      # The action's default package list includes the removed legacy `tools` package (sdkmanager exits 1);
+      # AGP downloads the compileSdk platform and build-tools itself once the licenses are accepted.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
 
       - uses: gradle/actions/setup-gradle@v4
 
