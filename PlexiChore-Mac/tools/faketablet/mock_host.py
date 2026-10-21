@@ -256,7 +256,8 @@ class MockHost:
     def serve_conn(self, c):
         c.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.hello_evt = threading.Event()
-        threading.Thread(target=self.reader, args=(c,), daemon=True).start()
+        rt = threading.Thread(target=self.reader, args=(c,), daemon=True)
+        rt.start()
         if not self.hello_evt.wait(5):
             self.report["errors"].append("no HELLO")
             c.close()
@@ -316,7 +317,11 @@ class MockHost:
                     c.close()
                     break
         except OSError as e:
-            if not self.stop:
+            # The tablet sends BYE and closes; a frame sent in between fails with EPIPE before the reader thread has
+            # parsed the BYE (seen on slower CI machines). Let the reader drain first; only a peer that vanished
+            # without BYE is an error.
+            rt.join(1.0)
+            if self.report["bye"] is None:
                 self.report["errors"].append("send: %s" % e)
         finally:
             time.sleep(0.2)
