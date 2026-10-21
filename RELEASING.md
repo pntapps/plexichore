@@ -1,7 +1,7 @@
 # Releasing PlexiChore (Mac + Android)
 
 Checklist for publishing a new version as a GitHub Release. Written after v1.0.0 (2026-10-22,
-https://github.com/pntapps/plexichore/releases/tag/v1.0.0 — Mac DMG + Android APK, marked pre-release/beta).
+https://github.com/pntapps/plexichore/releases/tag/v1.0.0 — Mac DMG + Android APK; published as a pre-release, then made a full release marked **Latest** the same day; the notes still call it a beta).
 **Claude: follow this whenever a release, version bump, DMG, APK, notarization or signing comes up, and ask the
 user before every outward-facing step** (notarization upload, commit, push, tag, release, flipping pre-release).
 
@@ -84,5 +84,8 @@ gh release download v<ver> -D <empty dir> && (cd <empty dir> && shasum -a 256 -c
   needs USB debugging + adb, Wi-Fi pairing code, emergency key ⌃⌥⌘D, what changed, and **known limits**: the Wi-Fi
   stream is unencrypted (recommend USB / trusted networks), rotation/scale re-creates the display (~1 s blank),
   private macOS display API, what is still unverified, Windows host not packaged.
-- Keep it a pre-release until the user decides it's stable; they flip it in GitHub (Edit → untick pre-release).
+- Ask the user whether to publish as a pre-release or a full release. Pre-releases are **not shown** in the repo
+  home page's Releases box (it then shows only "1 tag") — only a full release marked Latest is, and
+  `/releases/latest` points to it. Flip with `gh release edit v<ver> --prerelease=false --latest` (or back with
+  `--prerelease`). It only changes the label; files and links stay the same.
 - Afterwards: update `ROADMAP.md` and this file if anything about the process changed.
