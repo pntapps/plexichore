@@ -7,6 +7,7 @@ Compiles and runs on macOS 27 (Apple Silicon). Verified with the fake tablet (`t
 58/58) and end-to-end with the real Tab S8: mirror / extend / primary / portrait over USB and direct Wi-Fi (pairing),
 quit / `kill -9` / ⌃⌥⌘D restore, lid closed (opt-in), cable replug, − / + display size. First notarized DMG built
 (1.0.0, Developer ID, universal). Remaining hands-on items: `../ROADMAP.md` P0 #1.
+- Full release checklist (versions, notarization, GitHub Release): `../RELEASING.md`.
 - Release: `SIGN_IDENTITY="Developer ID Application: Md Imran Ansari (5ZKLJ5PZ6K)" UNIVERSAL=1 ./scripts/build-app.sh`,
   same `SIGN_IDENTITY` for `./scripts/package-dmg.sh`, then `./scripts/notarize.sh build/PlexiChore-<ver>.dmg` (keychain
   profile `plexichore-notary`). Submitting uploads to Apple — ask the user first. Every new build needs a new notarization.

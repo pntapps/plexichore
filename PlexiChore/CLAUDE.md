@@ -30,3 +30,5 @@ Working and verified on Galaxy Tab S8 (Android 16). Compatibility audit + fixes:
 - Samsung taskbar is reported as navigationBars + tappableElement — pad with `safeDrawing ∪ tappableElement`.
 - Rendering with timestamps can drop a 120 Hz panel to 60 Hz — `FramePacer`/`DisplayActivity` vote 120 Hz explicitly.
 - Release builds: `ConnectionProvider` calls `PlexiCore.get` directly (no reflection); check R8 keep rules before shipping.
+  Keep `-keeppackagenames androidx.**,kotlin.**,kotlinx.**` in `keepRules/rules.keep` (without it the release build
+  crashed at launch). Bump `versionCode` every release and sign with the registered key — see `../RELEASING.md`.
