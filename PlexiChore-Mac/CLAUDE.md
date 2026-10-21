@@ -3,8 +3,17 @@
 Read `../CLAUDE.md` and `../PROTOCOL.md` first. Human docs: `README.md`.
 
 ## Status (2026-10-21)
-Compiles and runs on macOS 27 (Apple Silicon). Verified with the fake tablet (`tools/faketablet/faketablet.py --scenario …`)
-and partly with the real Tab S8 (mirror over USB). Still to verify on the tablet: see `../ROADMAP.md` P0 #1.
+Compiles and runs on macOS 27 (Apple Silicon). Verified with the fake tablet (`tools/faketablet/faketablet.py --scenario …`,
+58/58) and end-to-end with the real Tab S8: mirror / extend / primary / portrait over USB and direct Wi-Fi (pairing),
+quit / `kill -9` / ⌃⌥⌘D restore, lid closed (opt-in), cable replug, − / + display size. First notarized DMG built
+(1.0.0, Developer ID, universal). Remaining hands-on items: `../ROADMAP.md` P0 #1.
+- Release: `SIGN_IDENTITY="Developer ID Application: Md Imran Ansari (5ZKLJ5PZ6K)" UNIVERSAL=1 ./scripts/build-app.sh`,
+  same `SIGN_IDENTITY` for `./scripts/package-dmg.sh`, then `./scripts/notarize.sh build/PlexiChore-<ver>.dmg` (keychain
+  profile `plexichore-notary`). Submitting uploads to Apple — ask the user first. Every new build needs a new notarization.
+  `notarize.sh` wrongly warns "the DMG itself is not Developer ID signed" (spctl confirms it is) — fix the check.
+- The app's TCC grants (Screen Recording, Accessibility) follow the signing identity; dev builds use the "PlexiChore
+  Local Dev" identity from `make-dev-cert.sh` (own keychain). macOS re-asks "bypass the private window picker" after
+  updates — the user must click Allow; never automate permission or pairing prompts.
 - Build: `swift build`; tests: `swift test`. App: `OUT_DIR=<dir> ./scripts/build-app.sh` (`INSTALL=1` copies to
   ~/Applications). Keep the repo out of iCloud-synced folders (it used to live in ~/Documents: codesigning the test bundle
   failed on iCloud xattrs and conflict copies like `HostController 2.swift` broke the build). It lives in ~/Developer now.
@@ -47,3 +56,11 @@ Then update this list and `../ROADMAP.md`.
 ## Notes
 - Not sandboxed (private API + CGEvent) → not App Store eligible; distribute notarized outside the store.
 - Pairing: loopback (USB) and trusted device IDs skip PAIRING; others get a 4-digit code (auto-reject after 2 min).
+- Lid closed: `HostPreferences.keepWithLidClosed` (Extended display → Options) lets a watched tablet stay the only display
+  on AC power (`DisplaySafetySnapshot.virtualOnlyAllowed`); without it the display goes after `virtualOnlyGrace` (10 s).
+- adb: a cable must *own* the 47800 reverse (`ADBParsing.reverseHeld`); a wireless-debugging twin that reverses later
+  would otherwise move the stream onto Wi-Fi. Testing tip: `adb disconnect` the wireless transport when measuring USB.
+- Help page (`UI/HelpPage.swift`, menu bar "Help…") holds the user-facing troubleshooting; keep it in sync with
+  behaviour changes (emergency key, permissions, lid option, scaling).
+- Logs: only errors are logged (`/usr/bin/log show --predicate 'subsystem == "com.pntapps.plexichore"'` — zsh has a
+  `log` builtin, use the full path).

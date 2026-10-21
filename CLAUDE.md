@@ -6,7 +6,7 @@ PlexiChore turns an Android tablet into a portable monitor (extend / primary / m
 - `PROTOCOL.md` — **authoritative wire protocol** (TCP 47800 stream, UDP 47801 discovery, big-endian `u8 type | u32 len | payload`). Every host and the tablet must match it byte-for-byte. Changes are **additive only** (new optional JSON fields with defaults), and must be implemented in all three components or documented as "not yet" in the lagging one.
 - `PlexiChore/` — Android app (Kotlin/Compose). See `PlexiChore/CLAUDE.md`.
 - `PlexiChore-Desktop/` — Windows host (.NET 10 WPF + Engine + tools). See `PlexiChore-Desktop/CLAUDE.md`.
-- `PlexiChore-Mac/` — macOS host (Swift, **never compiled yet**). See `PlexiChore-Mac/CLAUDE.md`.
+- `PlexiChore-Mac/` — macOS host (Swift/SwiftUI; working, verified end-to-end with the Tab S8; notarized 1.0.0 DMG built). See `PlexiChore-Mac/CLAUDE.md`.
 - `ROADMAP.md` — status, prioritized TODO, known limits. **Update it when you finish or discover something.**
 
 ## Architecture in one paragraph
@@ -22,11 +22,12 @@ Host = TCP server. Tablet discovers hosts via UDP beacons (or probes 127.0.0.1:4
 - Elevated actions (driver install/repair/restart) show a UAC prompt; ask the user before triggering them.
 - Virtual Display Driver gotchas (see `PlexiChore-Desktop/driver/README.md`): no `RELOAD_DRIVER`-type pipe commands (crash), keep the mode list small (≤ ~48 generated modes), mode changes need elevated `pnputil /restart-device`.
 - Don't commit benchmark run folders (`PlexiChore-Desktop/tools/Bench/results/*/`) — they contain screenshots of the user's desktop. `results.md` is fine.
-- Don't commit `local.properties`, keystores, `settings.json` from `%APPDATA%`, or `dist/`/`artifacts/`.
+- Don't commit `local.properties`, keystores, `settings.json` from `%APPDATA%`, or `dist/`/`artifacts/`/`build/` (DMGs, APKs).
+- **Don't commit or push until the user explicitly says so.** Commits are authored as `PNT Apps <pntapps.dev@gmail.com>`; push with `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push` (the `gh` login has the `workflow` scope; plain https git has no credentials here). The repo is public.
 - Measure smoothness with the bench harness (`PlexiChore-Desktop/tools/Bench/bench.ps1`), not by eye. A "stutter" = frame gap > 2× interval; the Tab S8 panel is 120 Hz so 25 ms gaps are normal 1-refresh slips.
 
 ## Where to continue
-1. On a **Mac**: `PlexiChore-Mac/CLAUDE.md` → get it compiling, then end-to-end with the tablet, then protocol parity.
+1. On a **Mac**: `PlexiChore-Mac/CLAUDE.md` → `swift build && swift test`, then the hands-on items left in `ROADMAP.md` P0 #1 (pinch, two-finger scroll/right-click, S-Pen, sleep/wake, an Intel Mac). Releases: Developer ID + `scripts/notarize.sh` (keychain profile `plexichore-notary`); ask the user before submitting to Apple.
 2. On a **Windows PC**: build/publish desktop, build/install Android, then pick from `ROADMAP.md` P0/P1 (release readiness, CI, keyboard forwarding, rotation polish).
 3. Before any protocol change: edit `PROTOCOL.md` first, then Android core `Protocol.kt`, Windows `Engine/Protocol/Protocol.cs`, Mac `Sources/PlexiChore/Protocol/Protocol.swift`.
 
