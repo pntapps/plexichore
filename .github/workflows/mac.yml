@@ -17,7 +17,9 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-latest
+    # Intel image: hosted macOS arm64 runners repeatedly failed to be acquired ("capacity constraints").
+    # The universal build compiles both architectures either way.
+    runs-on: macos-15-intel
     timeout-minutes: 30
     defaults:
       run:
