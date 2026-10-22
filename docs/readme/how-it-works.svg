@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320" role="img" aria-label="How it works: the Windows or Mac host app streams H.264 video to the Android tablet over TCP 47800; touch, pen and keyboard input flow back. Connect over a USB cable or Wi-Fi.">
+  <style>
+    text { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+    .name { font-size: 24px; font-weight: 700; fill: #eeecff; }
+    .small { font-size: 15px; fill: #a9a5cc; }
+    .label { font-size: 17px; font-weight: 600; }
+    .foot { font-size: 16px; fill: #a9a5cc; }
+    .fwd { animation: fwd 2.4s linear infinite; }
+    .back { animation: back 2.4s linear infinite; }
+    .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 2.4s ease-in-out infinite; }
+    @keyframes fwd { 0% { transform: translateX(0); opacity: 0; } 10%, 90% { opacity: 1; } 100% { transform: translateX(500px); opacity: 0; } }
+    @keyframes back { 0% { transform: translateX(0); opacity: 0; } 10%, 90% { opacity: 1; } 100% { transform: translateX(-500px); opacity: 0; } }
+    @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+  <defs>
+    <linearGradient id="brand" x1="0" x2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <linearGradient id="sA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b47d6"/><stop offset="1" stop-color="#1d1960"/></linearGradient>
+    <linearGradient id="sB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d6f8f"/><stop offset="1" stop-color="#1a1f5c"/></linearGradient>
+    <radialGradient id="gV"><stop offset="0" stop-color="#8b5cf6" stop-opacity="0.35"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient>
+    <radialGradient id="gC"><stop offset="0" stop-color="#22d3ee" stop-opacity="0.3"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></radialGradient>
+    <marker id="arrowC" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#22d3ee"/></marker>
+    <marker id="arrowV" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="320" rx="28" fill="#0b0a24"/>
+  <circle cx="170" cy="150" r="200" fill="url(#gV)"/>
+  <circle cx="1030" cy="150" r="200" fill="url(#gC)"/>
+
+  <!-- host -->
+  <rect x="40" y="40" width="260" height="200" rx="20" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.12"/>
+  <rect x="115" y="66" width="110" height="70" rx="6" fill="url(#sA)" stroke="#ffffff" stroke-opacity="0.2"/>
+  <rect x="115" y="124" width="110" height="12" fill="#000000" fill-opacity="0.4"/>
+  <rect x="100" y="136" width="140" height="9" rx="4.5" fill="#34307a"/>
+  <text x="170" y="184" text-anchor="middle" class="name">Windows / Mac</text>
+  <text x="170" y="210" text-anchor="middle" class="small">host app · virtual display</text>
+
+  <!-- tablet -->
+  <rect x="900" y="40" width="260" height="200" rx="20" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.12"/>
+  <rect x="975" y="62" width="110" height="78" rx="12" fill="#2b2763"/>
+  <rect x="981" y="68" width="98" height="66" rx="7" fill="url(#sB)"/>
+  <text x="1030" y="184" text-anchor="middle" class="name">Android tablet</text>
+  <text x="1030" y="210" text-anchor="middle" class="small">PlexiChore app</text>
+
+  <!-- video lane -->
+  <text x="600" y="92" text-anchor="middle" class="label" fill="#67e8f9">H.264 video  →</text>
+  <line x1="320" y1="115" x2="878" y2="115" stroke="#22d3ee" stroke-opacity="0.35" stroke-width="2" marker-end="url(#arrowC)"/>
+  <g>
+    <rect class="fwd" style="animation-delay:0s" x="330" y="107" width="34" height="16" rx="4" fill="url(#brand)"/>
+    <rect class="fwd" style="animation-delay:-0.6s" x="330" y="107" width="34" height="16" rx="4" fill="url(#brand)"/>
+    <rect class="fwd" style="animation-delay:-1.2s" x="330" y="107" width="34" height="16" rx="4" fill="url(#brand)"/>
+    <rect class="fwd" style="animation-delay:-1.8s" x="330" y="107" width="34" height="16" rx="4" fill="url(#brand)"/>
+  </g>
+
+  <!-- input lane -->
+  <line x1="880" y1="175" x2="322" y2="175" stroke="#a78bfa" stroke-opacity="0.35" stroke-width="2" marker-end="url(#arrowV)"/>
+  <g>
+    <circle class="back" style="animation-delay:-0.3s" cx="866" cy="175" r="7" fill="#a78bfa"/>
+    <circle class="back" style="animation-delay:-1.1s" cx="866" cy="175" r="7" fill="#a78bfa"/>
+    <circle class="back" style="animation-delay:-1.9s" cx="866" cy="175" r="7" fill="#a78bfa"/>
+  </g>
+  <text x="600" y="214" text-anchor="middle" class="label" fill="#c4b5fd">←  touch · S-Pen · keyboard</text>
+
+  <!-- transports -->
+  <circle class="pulse" cx="356" cy="279" r="5" fill="#34d399"/>
+  <text x="370" y="285" class="foot">USB cable (adb reverse)   ·   Wi-Fi with automatic discovery and pairing</text>
+</svg>

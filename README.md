@@ -1,16 +1,70 @@
-# PlexiChore
+<p align="center">
+  <img src="website/public/logo.png" width="96" alt="PlexiChore logo">
+</p>
 
-Turn any Android tablet into a portable monitor for a Windows PC or a Mac — as a **second (extended) display**, as the computer's **primary display**, or as a **mirror** of an existing screen. Touch and S-Pen input are sent back to the computer.
+<h1 align="center">PlexiChore</h1>
+
+<p align="center">
+  <b>Turn any Android tablet into a portable monitor for your Windows PC or Mac.</b><br>
+  Extend · Primary · Mirror — with touch and S-Pen, over USB or Wi-Fi.
+</p>
+
+<p align="center">
+  <a href="https://github.com/pntapps/plexichore/releases"><img src="https://img.shields.io/github/v/release/pntapps/plexichore?include_prereleases&label=release&color=7c5cff" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/platforms-Windows%20%C2%B7%20macOS%20%C2%B7%20Android-22d3ee" alt="Platforms: Windows, macOS, Android">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-34d399" alt="License: GPL-3.0"></a>
+</p>
+
+<p align="center">
+  <a href="https://plexichore.pntapps.com/download/windows"><img src="docs/readme/download-windows.svg" height="56" alt="Download for Windows"></a>
+  <a href="https://plexichore.pntapps.com/download/mac"><img src="docs/readme/download-mac.svg" height="56" alt="Download for macOS"></a>
+  <a href="https://plexichore.pntapps.com/download/android"><img src="docs/readme/download-android.svg" height="56" alt="Download for Android"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/pntapps/plexichore/releases">All releases</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#using-it">How to use</a> ·
+  <a href="#quick-start">Build from source</a>
+</p>
+
+<p align="center">
+  <img src="docs/readme/hero.svg" width="100%" alt="A laptop's desktop continuing onto an Android tablet: a window glides across, a pen writes and a finger taps on the tablet.">
+</p>
 
 **Developed by [PNT Apps](https://www.pntapps.com)** · Free software under [GPL-3.0](LICENSE) with attribution terms ([NOTICE](NOTICE)).
 
-```
-┌──────────────┐   H.264 video (TCP 47800)   ┌──────────────┐
-│  Windows/Mac │ ──────────────────────────▶ │   Android    │
-│  host app    │ ◀────────────────────────── │   tablet app │
-└──────────────┘   touch / pen / settings    └──────────────┘
-     USB cable (adb reverse or USB tethering) · Wi-Fi (UDP 47801 discovery)
-```
+## Three ways to use your tablet
+
+<p align="center">
+  <img src="docs/readme/modes.svg" width="100%" alt="Extend: a window moves from the computer onto the tablet. Primary: the taskbar moves to the tablet, which becomes the main display. Mirror: the tablet shows the same picture as the computer.">
+</p>
+
+- **Extend** — the tablet is a second screen next to yours; drag windows onto it.
+- **Primary** — the tablet becomes the main display (taskbar / menu bar move to it); your layout comes back when you disconnect. On Windows, with no monitor plugged in, the tablet is the main screen automatically.
+- **Mirror** — the tablet shows the same picture as one of your screens.
+
+## How it works
+
+<p align="center">
+  <img src="docs/readme/how-it-works.svg" width="100%" alt="The Windows or Mac host app streams H.264 video to the Android tablet; touch, pen and keyboard input flow back. Connect over a USB cable or Wi-Fi.">
+</p>
+
+The computer runs a small host app that creates a virtual monitor (Windows: the signed open-source Virtual Display Driver; macOS: built in), captures it and streams hardware-encoded H.264 to the tablet (TCP 47800). Touch, S-Pen and keyboard input flow back. Connect with a USB cable (`adb reverse`, set up for you) or over Wi-Fi with automatic discovery (UDP 47801) and a one-time 4-digit pairing code.
+
+## Download
+
+These links always download the newest version:
+
+| You have | Download |
+|---|---|
+| Windows 10 (1809+) / 11 PC | **[Installer](https://plexichore.pntapps.com/download/windows)** · [portable exe](https://plexichore.pntapps.com/download/windows-portable) (no install) |
+| Mac (macOS 13+, Apple Silicon or Intel) | **[DMG](https://plexichore.pntapps.com/download/mac)** (notarized) |
+| Android tablet (Android 8+) | **[APK](https://plexichore.pntapps.com/download/android)** |
+
+Release notes, checksums and older versions are on the **[Releases](https://github.com/pntapps/plexichore/releases)** page.
+
+Install the host on the computer and the app on the tablet, then see [Using it](#using-it).
 
 ## Repository layout
 

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 76" width="320" height="76" role="img" aria-label="Download PlexiChore for Windows">
+  <style>
+    text { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+    .shine { animation: shine 4.5s ease-in-out infinite; }
+    @keyframes shine { 0%, 60% { transform: translateX(-120px); } 100% { transform: translateX(440px); } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+  <defs>
+    <linearGradient id="b" x1="0" x2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <linearGradient id="s" x1="0" x2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.35"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+    <clipPath id="c"><rect x="2" y="2" width="316" height="72" rx="36"/></clipPath>
+  </defs>
+  <rect x="2" y="2" width="316" height="72" rx="36" fill="url(#b)"/>
+  <g clip-path="url(#c)"><rect class="shine" x="0" y="0" width="80" height="76" fill="url(#s)" transform="skewX(-20)"/></g>
+  <rect x="2.5" y="2.5" width="315" height="71" rx="35.5" fill="none" stroke="#ffffff" stroke-opacity="0.3"/>
+  <g transform="translate(28 20) scale(1.5)" fill="#ffffff"><path d="M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8L10.4 20v-7.1H3v6Zm8.3 1.2L21 21.5v-8.6h-9.7v7.2Zm0-16.2v7.3H21V2.5l-9.7 1.4Z"/></g>
+  <text x="78" y="34" font-size="14" fill="#ffffff" fill-opacity="0.85">Download for</text>
+  <text x="78" y="57" font-size="22" font-weight="700" fill="#ffffff">Windows</text>
+  <path d="M 284 28 v 16 m -7 -7 l 7 7 l 7 -7 M 276 50 h 16" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

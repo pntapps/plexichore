@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="1200" height="380" role="img" aria-label="The three modes. Extend: a window moves from the computer to the tablet. Primary: the taskbar moves to the tablet, which becomes the main display. Mirror: the tablet shows the same screen as the computer.">
+  <style>
+    text { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+    .title { font-size: 28px; font-weight: 700; fill: #eeecff; }
+    .sub { font-size: 16px; fill: #a9a5cc; }
+    .win { animation: extend 5s ease-in-out infinite; }
+    .tbOut { animation: tbOut 5s ease-in-out infinite; }
+    .tbIn { animation: tbIn 5s ease-in-out infinite; }
+    .star { transform-box: fill-box; transform-origin: center; animation: star 5s ease-in-out infinite; }
+    .curBig { animation: curBig 4s ease-in-out infinite; }
+    .curSmall { animation: curSmall 4s ease-in-out infinite; }
+    @keyframes extend { 0%, 15% { transform: translate(0, 0); } 45%, 65% { transform: translate(196px, 84px); } 95%, 100% { transform: translate(0, 0); } }
+    @keyframes tbOut { 0%, 25% { opacity: 1; } 40%, 80% { opacity: 0.12; } 95%, 100% { opacity: 1; } }
+    @keyframes tbIn { 0%, 25% { opacity: 0.12; } 40%, 80% { opacity: 1; } 95%, 100% { opacity: 0.12; } }
+    @keyframes star { 0%, 25% { opacity: 0; transform: scale(0.4); } 40%, 80% { opacity: 1; transform: scale(1); } 95%, 100% { opacity: 0; transform: scale(0.4); } }
+    @keyframes curBig { 0%, 100% { transform: translate(0, 0); } 30% { transform: translate(60px, 6px); } 60% { transform: translate(24px, 30px); } }
+    @keyframes curSmall { 0%, 100% { transform: translate(0, 0); } 30% { transform: translate(42px, 4px); } 60% { transform: translate(17px, 20px); } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+  <defs>
+    <linearGradient id="sA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b47d6"/><stop offset="1" stop-color="#1d1960"/></linearGradient>
+    <linearGradient id="sB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d6f8f"/><stop offset="1" stop-color="#1a1f5c"/></linearGradient>
+    <linearGradient id="brand" x1="0" x2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <radialGradient id="glow"><stop offset="0" stop-color="#8b5cf6" stop-opacity="0.35"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient>
+    <clipPath id="card1"><rect x="8" y="8" width="384" height="364" rx="24"/></clipPath><clipPath id="card2"><rect x="408" y="8" width="384" height="364" rx="24"/></clipPath><clipPath id="card3"><rect x="808" y="8" width="384" height="364" rx="24"/></clipPath>
+    <clipPath id="pc1"><rect x="40" y="130" width="200" height="125" rx="8"/></clipPath>
+    <clipPath id="tab1"><rect x="225" y="200" width="140" height="82" rx="9"/></clipPath>
+    <clipPath id="pc2"><rect x="440" y="130" width="200" height="125" rx="8"/></clipPath>
+    <clipPath id="tab2"><rect x="625" y="200" width="140" height="82" rx="9"/></clipPath>
+    <clipPath id="pc3"><rect x="840" y="130" width="200" height="125" rx="8"/></clipPath>
+    <clipPath id="tab3"><rect x="1025" y="200" width="140" height="82" rx="9"/></clipPath>
+    <!-- a cursor arrow at the origin -->
+    <path id="cursor" d="M 0 0 l 0 20 l 5 -5 l 4 9 l 4 -2 l -4 -9 l 7 0 z" fill="#ffffff" stroke="#06051a" stroke-width="1.6" stroke-linejoin="round"/>
+  </defs>
+
+  <!-- ===== Extend ===== -->
+  <rect x="8" y="8" width="384" height="364" rx="24" fill="#0b0a24" stroke="#ffffff" stroke-opacity="0.08"/>
+  <circle cx="200" cy="330" r="150" fill="url(#glow)" clip-path="url(#card1)"/>
+  <text x="40" y="62" class="title">Extend</text>
+  <text x="40" y="92" class="sub">A second screen next to yours</text>
+  <rect x="40" y="130" width="200" height="125" rx="8" fill="url(#sA)"/>
+  <rect x="64" y="150" width="80" height="42" rx="4" fill="#ffffff" fill-opacity="0.25"/>
+  <rect x="40" y="235" width="200" height="20" fill="#000000" fill-opacity="0.45" clip-path="url(#pc1)"/>
+  <rect x="134" y="255" width="12" height="20" fill="#ffffff" fill-opacity="0.2"/>
+  <rect x="104" y="275" width="72" height="7" rx="3.5" fill="#ffffff" fill-opacity="0.2"/>
+  <rect x="220" y="195" width="150" height="92" rx="13" fill="#2b2763"/>
+  <rect x="225" y="200" width="140" height="82" rx="9" fill="url(#sB)"/>
+  <rect x="300" y="214" width="52" height="28" rx="4" fill="#ffffff" fill-opacity="0.2" clip-path="url(#tab1)"/>
+  <g class="win">
+    <rect x="60" y="148" width="66" height="40" rx="4" fill="#f4f2ff"/>
+    <rect x="60" y="148" width="66" height="8" rx="3" fill="url(#brand)"/>
+    <rect x="66" y="162" width="40" height="4" rx="2" fill="#c9c3f5"/>
+    <rect x="66" y="171" width="30" height="4" rx="2" fill="#e2def9"/>
+    <use href="#cursor" x="96" y="150"/>
+  </g>
+
+  <!-- ===== Primary ===== -->
+  <rect x="408" y="8" width="384" height="364" rx="24" fill="#0b0a24" stroke="#ffffff" stroke-opacity="0.08"/>
+  <circle cx="600" cy="330" r="150" fill="url(#glow)" clip-path="url(#card2)"/>
+  <text x="440" y="62" class="title">Primary</text>
+  <text x="440" y="92" class="sub">The tablet becomes the main display</text>
+  <rect x="440" y="130" width="200" height="125" rx="8" fill="url(#sA)"/>
+  <rect x="464" y="150" width="80" height="42" rx="4" fill="#ffffff" fill-opacity="0.25"/>
+  <rect class="tbOut" x="440" y="235" width="200" height="20" fill="#000000" fill-opacity="0.45" clip-path="url(#pc2)"/>
+  <rect x="534" y="255" width="12" height="20" fill="#ffffff" fill-opacity="0.2"/>
+  <rect x="504" y="275" width="72" height="7" rx="3.5" fill="#ffffff" fill-opacity="0.2"/>
+  <rect x="620" y="195" width="150" height="92" rx="13" fill="#2b2763"/>
+  <rect x="625" y="200" width="140" height="82" rx="9" fill="url(#sB)"/>
+  <rect x="700" y="214" width="52" height="28" rx="4" fill="#ffffff" fill-opacity="0.2"/>
+  <g class="tbIn" clip-path="url(#tab2)">
+    <rect x="625" y="266" width="140" height="16" fill="#000000" fill-opacity="0.5"/>
+    <rect x="684" y="270" width="8" height="8" rx="2" fill="#22d3ee"/>
+    <rect x="698" y="270" width="8" height="8" rx="2" fill="#ffffff" fill-opacity="0.4"/>
+  </g>
+  <path class="star" d="M 760 168 l 5.9 12 l 13.1 1.9 l -9.5 9.3 l 2.2 13.1 l -11.7 -6.2 l -11.7 6.2 l 2.2 -13.1 l -9.5 -9.3 l 13.1 -1.9 z" fill="#fcd34d"/>
+
+  <!-- ===== Mirror ===== -->
+  <rect x="808" y="8" width="384" height="364" rx="24" fill="#0b0a24" stroke="#ffffff" stroke-opacity="0.08"/>
+  <circle cx="1000" cy="330" r="150" fill="url(#glow)" clip-path="url(#card3)"/>
+  <text x="840" y="62" class="title">Mirror</text>
+  <text x="840" y="92" class="sub">The same picture on both screens</text>
+  <g clip-path="url(#pc3)">
+    <rect x="840" y="130" width="200" height="125" rx="8" fill="url(#sA)"/>
+    <rect x="864" y="150" width="80" height="42" rx="4" fill="#ffffff" fill-opacity="0.25"/>
+    <rect x="940" y="180" width="76" height="42" rx="4" fill="#ffffff" fill-opacity="0.75"/>
+    <rect x="840" y="235" width="200" height="20" fill="#000000" fill-opacity="0.45"/>
+    <g class="curBig"><use href="#cursor" x="880" y="160"/></g>
+  </g>
+  <rect x="934" y="255" width="12" height="20" fill="#ffffff" fill-opacity="0.2"/>
+  <rect x="904" y="275" width="72" height="7" rx="3.5" fill="#ffffff" fill-opacity="0.2"/>
+  <rect x="1020" y="195" width="150" height="92" rx="13" fill="#2b2763"/>
+  <g clip-path="url(#tab3)">
+    <rect x="1025" y="200" width="140" height="82" fill="url(#sA)"/>
+    <rect x="1042" y="213" width="56" height="27" rx="3" fill="#ffffff" fill-opacity="0.25"/>
+    <rect x="1095" y="233" width="53" height="27" rx="3" fill="#ffffff" fill-opacity="0.75"/>
+    <rect x="1025" y="269" width="140" height="13" fill="#000000" fill-opacity="0.45"/>
+    <g class="curSmall"><g transform="translate(1053 220) scale(0.7)"><use href="#cursor"/></g></g>
+  </g>
+</svg>

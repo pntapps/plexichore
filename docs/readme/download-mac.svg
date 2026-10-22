@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 76" width="320" height="76" role="img" aria-label="Download PlexiChore for macOS">
+  <style>
+    text { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+    .shine { animation: shine 4.5s ease-in-out infinite; }
+    @keyframes shine { 0%, 60% { transform: translateX(-120px); } 100% { transform: translateX(440px); } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+  <defs>
+    <linearGradient id="b" x1="0" x2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <linearGradient id="s" x1="0" x2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.35"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+    <clipPath id="c"><rect x="2" y="2" width="316" height="72" rx="36"/></clipPath>
+  </defs>
+  <rect x="2" y="2" width="316" height="72" rx="36" fill="url(#b)"/>
+  <g clip-path="url(#c)"><rect class="shine" x="0" y="0" width="80" height="76" fill="url(#s)" transform="skewX(-20)"/></g>
+  <rect x="2.5" y="2.5" width="315" height="71" rx="35.5" fill="none" stroke="#ffffff" stroke-opacity="0.3"/>
+  <g transform="translate(28 20) scale(1.5)" fill="#ffffff"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79-1.54.02-2.96.9-3.76 2.28-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.42-3.66l.05-.03ZM14.1 5.86c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.67-1.1 1.76-.96 2.8 1.01.08 2.05-.52 2.68-1.28Z"/></g>
+  <text x="78" y="34" font-size="14" fill="#ffffff" fill-opacity="0.85">Download for</text>
+  <text x="78" y="57" font-size="22" font-weight="700" fill="#ffffff">macOS</text>
+  <path d="M 284 28 v 16 m -7 -7 l 7 7 l 7 -7 M 276 50 h 16" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
