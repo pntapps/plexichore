@@ -466,6 +466,12 @@ internal sealed partial class Session
             var vdp = _host.VirtualDisplays;
             // "primary" = extend + the virtual monitor becomes the Windows primary display (provider restores on detach)
             string mode = req.Mode is "extend" or "primary" && !_extendBroken ? req.Mode : "mirror";
+            // headless PC (no real monitor on the desktop): the tablet IS the monitor, whatever mode it asked for
+            if (mode != "primary" && !_extendBroken && SafeAvailable(vdp) && !SafeHasPhysicalMonitor(vdp))
+            {
+                _log.LogInformation("No physical monitor attached; using primary mode instead of {Mode}", mode);
+                mode = "primary";
+            }
             bool virtualMode = mode != "mirror";
             string? deviceName = null;
             int boxW = 0, boxH = 0;
@@ -606,5 +612,10 @@ internal sealed partial class Session
     private static bool SafeAvailable(IVirtualDisplayProvider? p)
     {
         try { return p?.IsAvailable == true; } catch { return false; }
+    }
+
+    private static bool SafeHasPhysicalMonitor(IVirtualDisplayProvider? p)
+    {
+        try { return p?.HasPhysicalMonitor != false; } catch { return true; }
     }
 }

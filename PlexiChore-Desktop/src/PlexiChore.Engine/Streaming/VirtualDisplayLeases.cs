@@ -28,6 +28,8 @@ internal sealed class VirtualDisplayLeases : IVirtualDisplayProvider
 
     public bool IsAvailable => _inner.IsAvailable;
 
+    public bool HasPhysicalMonitor => _inner.HasPhysicalMonitor;
+
     public Task<VirtualMonitor?> AttachAsync(int width, int height, int refreshHz, string position, CancellationToken ct = default) =>
         AttachAsync(width, height, refreshHz, position, false, ct);
 

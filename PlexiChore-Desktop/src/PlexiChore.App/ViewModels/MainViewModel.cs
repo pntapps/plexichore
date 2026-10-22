@@ -303,7 +303,7 @@ public sealed partial class MainViewModel : ObservableObject
             : null;
         (VddTitle, VddDetail, VddTone) = st.State switch
         {
-            VddState.Ready => ("Virtual display ready", "Tablets that ask for “Extend” get their own monitor next to your main screen.", "good"),
+            VddState.Ready => ("Virtual display ready", "Tablets that ask for “Extend” or “Primary” get their own monitor. With no monitor plugged in, the tablet becomes the main screen.", "good"),
             VddState.NeedsRepair => ("Needs repair", "Virtual monitor didn't start — click Repair (admin). PlexiChore rewrites the driver settings with a compact mode list and restarts the virtual display.", "bad"),
             VddState.NotInstalled => ("Not installed", "Without the driver, tablets can only mirror an existing monitor. Install it to use your tablet as a second screen.", "warn"),
             VddState.Disabled => ("Driver disabled", st.Detail ?? "Enable it in Device Manager or click Repair.", "warn"),
@@ -383,7 +383,7 @@ public sealed partial class MainViewModel : ObservableObject
     {
         await _vddInstaller.InstallAsync(p);
         await AfterDeviceStartAsync();
-    }, "Installed. Tablets can now use Extend mode.");
+    }, "Installed. Tablets can now use Extend and Primary mode.");
 
     /// Repair: driver files missing/broken → reinstall; otherwise rewrite the compact settings + elevated restart.
     [RelayCommand]

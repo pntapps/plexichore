@@ -6,7 +6,7 @@
         <StackPanel Margin="28,6,36,36" MaxWidth="1040">
             <TextBlock Text="Extended display" Style="{StaticResource Plexi.PageTitle}" />
             <TextBlock Style="{StaticResource Plexi.PageSubtitle}"
-                       Text="Use the tablet as a real second monitor. PlexiChore uses the signed, open-source Virtual Display Driver to add a virtual screen only while a tablet is in Extend mode." />
+                       Text="Use the tablet as a real second monitor. PlexiChore uses the signed, open-source Virtual Display Driver to add a virtual screen while a tablet uses Extend or Primary mode. No monitor plugged in? The tablet becomes your PC's main screen." />
 
             <Border Style="{StaticResource Plexi.Card}" Margin="0,22,0,0" Padding="24,22">
                 <StackPanel>
@@ -170,7 +170,7 @@
                     <StackPanel>
                         <ui:SymbolIcon Symbol="Star24" FontSize="22" Foreground="#B9A3FF" HorizontalAlignment="Left" />
                         <TextBlock Text="Primary" Style="{StaticResource Plexi.CardTitle}" Margin="0,10,0,4" />
-                        <TextBlock Style="{StaticResource Plexi.Body}" Text="The tablet becomes Windows' main display: taskbar, Start and new windows open there. Your monitor stays on beside it, and your original main display is restored when the tablet disconnects — or at the next start if PlexiChore was closed unexpectedly." />
+                        <TextBlock Style="{StaticResource Plexi.Body}" Text="The tablet becomes Windows' main display: taskbar, Start and new windows open there. Your monitor stays on beside it, and your original main display is restored when the tablet disconnects — or at the next start if PlexiChore was closed unexpectedly. With no monitor plugged in, every tablet connects in Primary mode." />
                     </StackPanel>
                 </Border>
                 <Border Grid.Column="4" Style="{StaticResource Plexi.Card}">
@@ -203,7 +203,7 @@
                     <StackPanel>
                         <ui:SymbolIcon Symbol="PlugDisconnected24" FontSize="22" Foreground="{StaticResource Plexi.GreenBrush}" HorizontalAlignment="Left" />
                         <TextBlock Text="Gone when you disconnect" Style="{StaticResource Plexi.CardTitle}" Margin="0,10,0,4" />
-                        <TextBlock Style="{StaticResource Plexi.Body}" Text="Windows moves your apps back to the main screen as soon as the tablet leaves." />
+                        <TextBlock Style="{StaticResource Plexi.Body}" Text="Windows moves your apps back to the main screen as soon as the tablet leaves. With no monitor plugged in, the virtual screen stays on until you plug one in, so Windows always has a screen." />
                     </StackPanel>
                 </Border>
             </Grid>

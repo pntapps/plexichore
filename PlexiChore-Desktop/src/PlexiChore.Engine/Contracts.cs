@@ -86,6 +86,11 @@ public interface IVirtualDisplayProvider
     /// Default implementation (providers without scaling support): returns 0.
     Task<int> SetScaleAsync(VirtualMonitor monitor, int scalePercent, int tabletDensityDpi, CancellationToken ct = default) =>
         Task.FromResult(0);
+
+    /// Additive: false when no real (non-virtual) monitor is on the Windows desktop — a headless PC. The Engine then
+    /// streams in "primary" mode whatever the tablet asked for, so the tablet becomes the PC's monitor.
+    /// Default implementation (providers that cannot tell): true.
+    bool HasPhysicalMonitor => true;
 }
 
 // Engine's PlexiServer constructor: public PlexiServer(IVirtualDisplayProvider? virtualDisplays, Microsoft.Extensions.Logging.ILogger? logger = null)

@@ -24,12 +24,32 @@ public sealed class VirtualDisplayDriverProvider : IVirtualDisplayProvider, IDis
     private readonly string _restoreFile = Path.Combine(AppPaths.RoamingDir, "primary-restore.json");
     private volatile VddDeviceStatus _status = new(VddState.Unknown, null, null, 0, null);
     private Timer? _poll;
+    /// Set while a virtual monitor is left on the desktop because it is the PC's only display (headless PC);
+    /// the poll takes it off again once a real monitor shows up.
+    private volatile bool _keptAsOnlyDisplay;
 
     public VirtualDisplayDriverProvider(ILogger<VirtualDisplayDriverProvider> log, Func<string>? settingsPath = null)
     {
         _log = log;
         _settingsPath = settingsPath ?? VddSettingsFile.ResolvePath;
         LoadState();
+    }
+
+    /// False when no real (non-VDD) monitor is attached to the desktop: the tablet then becomes the PC's monitor.
+    public bool HasPhysicalMonitor
+    {
+        get
+        {
+            try { return AnyPhysicalAttached(excludeGdi: null); }
+            catch (Exception ex) { _log.LogDebug(ex, "Physical monitor check failed"); return true; }
+        }
+    }
+
+    private static bool AnyPhysicalAttached(string? excludeGdi)
+    {
+        var vddNames = VddGdiNames();
+        if (excludeGdi != null) vddNames.Add(excludeGdi);
+        return AttachedLayout(d => !vddNames.Contains(d.GdiName)).Count > 0;
     }
 
     /// True while the virtual monitor is (or may still be, after a crash) the Windows primary display.
@@ -71,6 +91,13 @@ public sealed class VirtualDisplayDriverProvider : IVirtualDisplayProvider, IDis
     {
         var before = _status;
         var now = await RefreshAsync();
+        if (_keptAsOnlyDisplay && HasPhysicalMonitor)
+        {
+            _log.LogInformation("A physical monitor is attached now");
+            _keptAsOnlyDisplay = false;
+            await DetachStrayAsync();
+            return;
+        }
         // The monitor (re)arrived — device restart, driver recovery, Windows update… Windows auto-extends onto it;
         // take it off the desktop again unless a tablet is using it.
         if (before.MonitorPresent || !now.MonitorPresent || before.State == VddState.Unknown) return;
@@ -88,6 +115,12 @@ public sealed class VirtualDisplayDriverProvider : IVirtualDisplayProvider, IDis
         {
             foreach (var d in FindVddDisplays().Where(d => d.AttachedToDesktop))
             {
+                if (!AnyPhysicalAttached(d.GdiName))
+                {
+                    _log.LogInformation("Keeping virtual monitor {Gdi} on the desktop: no physical monitor is attached", d.GdiName);
+                    _keptAsOnlyDisplay = true;
+                    continue;
+                }
                 _log.LogInformation("Detaching unused virtual monitor {Gdi}", d.GdiName);
                 await DetachCoreAsync(d.GdiName);
             }
@@ -278,7 +311,8 @@ public sealed class VirtualDisplayDriverProvider : IVirtualDisplayProvider, IDis
                       ?? new Rectangle(0, 0, 1920, 1080);
         var others = displays.Where(d => d.AttachedToDesktop && !string.Equals(d.GdiName, gdi, StringComparison.OrdinalIgnoreCase))
             .Select(d => d.Bounds).Where(b => !b.IsEmpty).ToList();
-        var pos = DisplayLayout.ComputePosition(primary, others, mode.Width, mode.Height, position);
+        // the only display (headless PC) sits at the desktop origin
+        var pos = others.Count == 0 ? Point.Empty : DisplayLayout.ComputePosition(primary, others, mode.Width, mode.Height, position);
 
         var r = Displays.StageModeAndPosition(gdi, mode, pos);
         if (r != DisplayNative.DISP_CHANGE_SUCCESSFUL && mode.Hz > 0)
@@ -395,8 +429,17 @@ public sealed class VirtualDisplayDriverProvider : IVirtualDisplayProvider, IDis
     {
         try
         {
-            _log.LogInformation("Detaching virtual monitor {Gdi}", gdi);
             var record = PrimaryRestoreRecord.Load(_restoreFile);
+            if (!AnyPhysicalAttached(gdi))
+            {
+                // headless PC: taking the only display away would leave Windows with no desktop at all. Keep it; the
+                // poll detaches it once a real monitor is plugged in. A restore record has nothing left to restore.
+                _log.LogInformation("Keeping virtual monitor {Gdi} attached: it is the only display", gdi);
+                _keptAsOnlyDisplay = true;
+                if (record != null) PrimaryRestoreRecord.Delete(_restoreFile);
+                return;
+            }
+            _log.LogInformation("Detaching virtual monitor {Gdi}", gdi);
             // Primary mode: put the original primary + positions back in the SAME batch as the detach, so Windows never
             // has to pick a primary itself.
             if (record != null) StageRestore(record, excludeGdi: gdi);
@@ -477,7 +520,12 @@ public sealed class VirtualDisplayDriverProvider : IVirtualDisplayProvider, IDis
             var vddNames = VddGdiNames();
             vddNames.Add(vddGdi);
             var physical = AttachedLayout(d => !vddNames.Contains(d.GdiName));
-            if (physical.Count == 0) return false;
+            if (physical.Count == 0)
+            {
+                // headless PC: the virtual monitor will be the only display, so there is no layout to put back
+                _log.LogInformation("No physical monitor attached; primary mode needs no restore record");
+                return true;
+            }
             if (!physical.Any(p => p.IsPrimary))
             {
                 // primary is currently a virtual monitor (unexpected): treat the physical one closest to 0,0 as original
