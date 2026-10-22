@@ -11,7 +11,7 @@ PlexiChore turns an Android tablet into a portable monitor (extend / primary / m
 - `ROADMAP.md` — status, prioritized TODO, known limits. **Update it when you finish or discover something.**
 - `RELEASING.md` — **read it before any release, version bump, DMG/APK build, notarization or signing work**: version
   numbers to bump (Android `versionCode` must increase), notarized DMG steps, the registered Android signing key,
-  release-build crash checks, GitHub Release steps and notes. Latest release: v1.0.0 (full release, marked Latest; Mac + Android); v1.1.0 = first Windows host release (pre-release). License: GPL-3.0 + attribution terms in `NOTICE` — keep the "Developed by PNT Apps" credit in README and all three About screens.
+  release-build crash checks, GitHub Release steps and notes. Latest release: v1.0.0 (full release, marked Latest; Mac + Android); v1.1.0 = first Windows host release (pre-release); v1.1.1 = Windows pre-release with the primary-mode touch fix. License: GPL-3.0 + attribution terms in `NOTICE` — keep the "Developed by PNT Apps" credit in README and all three About screens.
 
 ## Architecture in one paragraph
 Host = TCP server. Tablet discovers hosts via UDP beacons (or probes 127.0.0.1:47800 for USB via `adb reverse`), sends HELLO (display size, densityDpi, decoder caps, requested mode/fps/bitrate/scale/orientation), host replies CONFIG then streams VIDEO (H.264 Annex-B; SPS/PPS before IDR, flag bit1 = codec config) and receives INPUT (normalized pointer events). Extend/Primary require a *virtual monitor* on the host: Windows uses the signed open-source Virtual Display Driver (IddCx "MttVDD"); macOS uses the private `CGVirtualDisplay` API.
