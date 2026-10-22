@@ -48,7 +48,8 @@ if ($Installer) {
         "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
     ) | Where-Object { Test-Path $_ } | Select-Object -First 1
     if (-not $iscc) { throw 'Inno Setup 6 (ISCC.exe) not found. Install it from https://jrsoftware.org/isdl.php' }
-    $ver = (Get-Item (Join-Path $dist 'PlexiChore.exe')).VersionInfo.ProductVersion
+    # ProductVersion carries the commit ("1.1.0+<sha>"); the installer name/version uses the plain version
+$ver = ((Get-Item (Join-Path $dist 'PlexiChore.exe')).VersionInfo.ProductVersion -split '\+')[0]
     & $iscc "/DAppVersion=$ver" "/DDistDir=$dist" (Join-Path $root 'installer\PlexiChore.iss')
     if ($LASTEXITCODE -ne 0) { throw "ISCC failed ($LASTEXITCODE)" }
 }
