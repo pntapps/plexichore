@@ -99,7 +99,10 @@ internal static unsafe partial class DisplayNative
     public const uint QDC_ALL_PATHS = 0x1;
     public const uint QDC_ONLY_ACTIVE_PATHS = 0x2;
     public const uint SDC_TOPOLOGY_EXTEND = 0x4;
+    public const uint SDC_USE_SUPPLIED_DISPLAY_CONFIG = 0x20;
     public const uint SDC_APPLY = 0x80;
+    public const uint SDC_SAVE_TO_DATABASE = 0x200;
+    public const uint SDC_ALLOW_CHANGES = 0x400;
 
     [StructLayout(LayoutKind.Sequential)]
     public struct LUID { public uint LowPart; public int HighPart; }
@@ -217,6 +220,10 @@ internal static unsafe partial class DisplayNative
 
     [DllImport("user32.dll")]
     public static extern int SetDisplayConfig(uint numPathArrayElements, IntPtr pathArray, uint numModeInfoArrayElements, IntPtr modeInfoArray, uint flags);
+
+    [DllImport("user32.dll", EntryPoint = "SetDisplayConfig")]
+    public static extern int SetDisplayConfigSupplied(uint numPathArrayElements, [In] DISPLAYCONFIG_PATH_INFO[] pathArray,
+        uint numModeInfoArrayElements, [In] DISPLAYCONFIG_MODE_INFO[] modeInfoArray, uint flags);
 }
 
 /// A GDI display source (\\.\DISPLAYn) with its adapter/monitor identification.
@@ -395,6 +402,43 @@ internal static class Displays
 
     public static int ApplyStaged() =>
         DisplayNative.ChangeDisplaySettingsExApply(null, IntPtr.Zero, IntPtr.Zero, 0, IntPtr.Zero);
+
+    // Immediate variants (no CDS_UPDATEREGISTRY, no batching). The staged path writes Windows' saved layout and fails
+    // with DISP_CHANGE_FAILED once that saved layout is inconsistent (seen after a headless primary session); these
+    // still work then. Persist the result with SaveActiveConfig().
+
+    /// Makes the device the primary display right away; Windows shifts the other monitors itself.
+    public static int SetPrimaryNow(string gdiName)
+    {
+        var dm = DisplayNative.DEVMODE.Create();
+        dm.dmDeviceName = gdiName;
+        dm.dmFields = DisplayNative.DM_POSITION;
+        return DisplayNative.ChangeDisplaySettingsEx(gdiName, ref dm, IntPtr.Zero, DisplayNative.CDS_SET_PRIMARY, IntPtr.Zero);
+    }
+
+    /// Removes the device from the desktop right away.
+    public static int DetachNow(string gdiName)
+    {
+        var dm = DisplayNative.DEVMODE.Create();
+        dm.dmDeviceName = gdiName;
+        dm.dmFields = DisplayNative.DM_POSITION | DisplayNative.DM_PELSWIDTH | DisplayNative.DM_PELSHEIGHT;
+        return DisplayNative.ChangeDisplaySettingsEx(gdiName, ref dm, IntPtr.Zero, 0, IntPtr.Zero);
+    }
+
+    /// Saves the active layout as Windows' remembered layout for the connected monitors (repairs a stale one).
+    /// Returns the Win32 error (0 = ok).
+    public static int SaveActiveConfig()
+    {
+        var e = DisplayNative.GetDisplayConfigBufferSizes(DisplayNative.QDC_ONLY_ACTIVE_PATHS, out var np, out var nm);
+        if (e != 0) return e;
+        var paths = new DisplayNative.DISPLAYCONFIG_PATH_INFO[np];
+        var modes = new DisplayNative.DISPLAYCONFIG_MODE_INFO[nm];
+        e = DisplayNative.QueryDisplayConfig(DisplayNative.QDC_ONLY_ACTIVE_PATHS, ref np, paths, ref nm, modes, IntPtr.Zero);
+        if (e != 0) return e;
+        return DisplayNative.SetDisplayConfigSupplied(np, paths, nm, modes,
+            DisplayNative.SDC_USE_SUPPLIED_DISPLAY_CONFIG | DisplayNative.SDC_ALLOW_CHANGES |
+            DisplayNative.SDC_SAVE_TO_DATABASE | DisplayNative.SDC_APPLY);
+    }
 
     /// DisplayConfig source (adapter LUID + source id) of an ACTIVE path whose GDI name is <paramref name="gdiName"/>.
     public static bool TryFindActiveSource(string gdiName, out DisplayNative.LUID adapterId, out uint sourceId)

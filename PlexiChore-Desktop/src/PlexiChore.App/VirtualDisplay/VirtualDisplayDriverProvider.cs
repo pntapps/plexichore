@@ -98,11 +98,30 @@ public sealed class VirtualDisplayDriverProvider : IVirtualDisplayProvider, IDis
             await DetachStrayAsync();
             return;
         }
+        // Safety net: no tablet is connected, a real monitor is there, but a virtual monitor is still on the desktop
+        // (e.g. an earlier detach was refused) — the user would see a missing desktop/taskbar. Take it off.
+        if (now.MonitorPresent && HasActiveSessions?.Invoke() != true && VirtualOnDesktopBesidePhysical())
+        {
+            _log.LogInformation("Virtual monitor is on the desktop without a tablet session");
+            await DetachStrayAsync();
+            return;
+        }
         // The monitor (re)arrived — device restart, driver recovery, Windows update… Windows auto-extends onto it;
         // take it off the desktop again unless a tablet is using it.
         if (before.MonitorPresent || !now.MonitorPresent || before.State == VddState.Unknown) return;
         _log.LogInformation("Virtual monitor arrived");
         await DetachStrayAsync();
+    }
+
+    private static bool VirtualOnDesktopBesidePhysical()
+    {
+        try
+        {
+            var vddNames = VddGdiNames();
+            var attached = Displays.Enumerate().Where(d => d.AttachedToDesktop).ToList();
+            return attached.Any(d => vddNames.Contains(d.GdiName)) && attached.Any(d => !vddNames.Contains(d.GdiName));
+        }
+        catch { return false; }
     }
 
     /// Detaches VDD monitors that are on the desktop although no tablet session uses them (no-op otherwise).
@@ -433,10 +452,10 @@ public sealed class VirtualDisplayDriverProvider : IVirtualDisplayProvider, IDis
             if (!AnyPhysicalAttached(gdi))
             {
                 // headless PC: taking the only display away would leave Windows with no desktop at all. Keep it; the
-                // poll detaches it once a real monitor is plugged in. A restore record has nothing left to restore.
+                // poll detaches it once a real monitor is plugged in. Keep the restore record too: a monitor that only
+                // went to sleep comes back, and then its original layout must be put back.
                 _log.LogInformation("Keeping virtual monitor {Gdi} attached: it is the only display", gdi);
                 _keptAsOnlyDisplay = true;
-                if (record != null) PrimaryRestoreRecord.Delete(_restoreFile);
                 return;
             }
             _log.LogInformation("Detaching virtual monitor {Gdi}", gdi);
@@ -456,6 +475,7 @@ public sealed class VirtualDisplayDriverProvider : IVirtualDisplayProvider, IDis
                 return d == null || !d.AttachedToDesktop ? (object)true : null;
             }, ApplyTimeout, CancellationToken.None);
             if (record != null) await FinishRestoreAsync(record);
+            await EnsureVirtualOffAsync(gdi, record?.OriginalPrimary?.GdiName);
         }
         catch (Exception ex) { _log.LogWarning(ex, "Detach failed"); }
         finally
@@ -464,6 +484,48 @@ public sealed class VirtualDisplayDriverProvider : IVirtualDisplayProvider, IDis
             SaveState();
             StatusChanged?.Invoke(this, EventArgs.Empty);
         }
+    }
+
+    /// Verifies a detach actually took effect. If the virtual monitor is still on the desktop, or a virtual monitor is
+    /// still the primary display, the staged (registry) path was refused — Windows' saved layout can be inconsistent
+    /// after a headless primary session, and then every staged change fails with DISP_CHANGE_FAILED. Fall back to
+    /// immediate changes: a physical monitor (the original primary if known) becomes primary, the virtual one is
+    /// removed, and the result is saved as Windows' layout so later staged changes work again.
+    private async Task EnsureVirtualOffAsync(string gdi, string? preferredPrimary)
+    {
+        var vddNames = VddGdiNames();
+        vddNames.Add(gdi);
+        var displays = Displays.Enumerate();
+        bool stillAttached = displays.Any(d => d.AttachedToDesktop && string.Equals(d.GdiName, gdi, StringComparison.OrdinalIgnoreCase));
+        bool virtualPrimary = displays.Any(d => d.AttachedToDesktop && d.IsPrimary && vddNames.Contains(d.GdiName));
+        if (!stillAttached && !virtualPrimary) return;
+        var physical = displays.Where(d => d.AttachedToDesktop && !d.Bounds.IsEmpty && !vddNames.Contains(d.GdiName)).ToList();
+        if (physical.Count == 0) return; // headless: the virtual monitor has to stay
+
+        _log.LogWarning("Virtual monitor {Gdi} is still {State} after detaching; applying the fallback", gdi,
+            virtualPrimary ? "the primary display" : "on the desktop");
+        if (virtualPrimary)
+        {
+            var target = physical.FirstOrDefault(d => string.Equals(d.GdiName, preferredPrimary, StringComparison.OrdinalIgnoreCase))
+                         ?? physical.OrderBy(d => Math.Abs((long)d.Bounds.X) + Math.Abs((long)d.Bounds.Y)).First();
+            var r = Displays.SetPrimaryNow(target.GdiName);
+            _log.LogInformation("Fallback: {Gdi} primary: {R}", target.GdiName, DescribeDispChange(r));
+        }
+        foreach (var v in Displays.Enumerate().Where(d => d.AttachedToDesktop && vddNames.Contains(d.GdiName)))
+        {
+            var r = Displays.DetachNow(v.GdiName);
+            _log.LogInformation("Fallback: detach {Gdi}: {R}", v.GdiName, DescribeDispChange(r));
+        }
+        var done = await WaitForAsync(() =>
+        {
+            var now = Displays.Enumerate();
+            return now.Any(d => d.AttachedToDesktop && vddNames.Contains(d.GdiName)) ||
+                   !now.Any(d => d.AttachedToDesktop && d.IsPrimary) ? null : (object)true;
+        }, ApplyTimeout, CancellationToken.None);
+        var s = Displays.SaveActiveConfig();
+        var primary = Displays.Enumerate().FirstOrDefault(d => d.IsPrimary && d.AttachedToDesktop);
+        _log.Log(done != null ? LogLevel.Information : LogLevel.Warning,
+            "Fallback {Result}: primary {P}, layout saved: {S}", done != null ? "done" : "incomplete", primary?.GdiName ?? "?", s);
     }
 
     /// Detaches virtual monitors this app attached (used at startup after a crash, and at exit). Also undoes a
