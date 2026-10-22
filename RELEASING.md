@@ -1,4 +1,4 @@
-# Releasing PlexiChore (Mac + Android)
+# Releasing PlexiChore (Mac + Android + Windows)
 
 Checklist for publishing a new version as a GitHub Release. Written after v1.0.0 (2026-10-22,
 https://github.com/pntapps/plexichore/releases/tag/v1.0.0 — Mac DMG + Android APK; published as a pre-release, then made a full release marked **Latest** the same day; the notes still call it a beta).
@@ -65,6 +65,18 @@ SIGN_IDENTITY="$ID" ./scripts/package-dmg.sh                 # → build/PlexiCh
 - Installing a release-signed APK over a debug build fails (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`) — uninstalling
   wipes the app's settings, so ask the user first.
 
+## 3b. Windows host (installer + portable exe)
+First done for v1.1.0 (2026-10-22, pre-release, Windows only; Mac/Android stayed on v1.0.0).
+- Version: `PlexiChore-Desktop/src/PlexiChore.App/PlexiChore.App.csproj` → `<Version>`. Keep the file without a BOM.
+- Needs the .NET 10 SDK and Inno Setup 6 (`winget install Microsoft.DotNet.SDK.10`, `JRSoftware.InnoSetup`).
+- Build **from the release commit** (the exe embeds it: ProductVersion `1.1.0+<sha>`):
+  `taskkill /F /IM PlexiChore.exe` (if the dist exe runs), then `powershell -File PlexiChore-Desktop\publish.ps1 -Installer`
+  → `dist\PlexiChore.exe` (~229 MB) + `dist\PlexiChoreSetup-<ver>.exe` (~60 MB; installs LICENSE.txt/NOTICE.txt).
+- Publish as `PlexiChoreSetup-<ver>.exe` + `PlexiChore-Windows-<ver>-portable.exe` + `SHA256SUMS.txt`
+  (PowerShell `Get-FileHash`, lowercase, `"<hash>  <name>"` lines with LF so `sha256sum -c` verifies).
+- Not code-signed yet: the notes must tell users about SmartScreen (*More info → Run anyway*).
+- Smoke test: run the dist exe, connect the tablet (Extend), check the log for CONFIG + hardware encoder.
+
 ## 4. CI
 Push triggers `.github/workflows/{mac,android,windows}.yml` (path-filtered). Mac runs on `macos-15-intel` because
 hosted arm64 runners were repeatedly unavailable. CI artifacts are ad-hoc/unsigned test builds (14 days) — never
@@ -83,7 +95,7 @@ gh release download v<ver> -D <empty dir> && (cd <empty dir> && shasum -a 256 -c
 - Notes: start from the v1.0.0 notes (`gh release view v1.0.0`) — downloads table, Mac + Android install steps, USB
   needs USB debugging + adb, Wi-Fi pairing code, emergency key ⌃⌥⌘D, what changed, and **known limits**: the Wi-Fi
   stream is unencrypted (recommend USB / trusted networks), rotation/scale re-creates the display (~1 s blank),
-  private macOS display API, what is still unverified, Windows host not packaged.
+  private macOS display API, what is still unverified, Windows SmartScreen (unsigned) and no-monitor limits.
 - Ask the user whether to publish as a pre-release or a full release. Pre-releases are **not shown** in the repo
   home page's Releases box (it then shows only "1 tag") — only a full release marked Latest is, and
   `/releases/latest` points to it. Flip with `gh release edit v<ver> --prerelease=false --latest` (or back with
