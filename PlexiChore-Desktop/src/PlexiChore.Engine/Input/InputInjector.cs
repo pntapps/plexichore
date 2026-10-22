@@ -81,6 +81,15 @@ internal sealed unsafe class InputInjector : IDisposable
         };
     }
 
+    /// Synthetic pointer input (touch/pen) is placed relative to the virtual-desktop origin rather than in true screen
+    /// coordinates: when a monitor sits left of / above the primary (primary mode moves the user's monitor to -2560,0)
+    /// every contact lands shifted by that origin. Measured on Windows 11 26200; compensate before injecting.
+    private static POINT ToSynthetic(POINT pt) => new()
+    {
+        X = pt.X - GetSystemMetrics(SM_XVIRTUALSCREEN),
+        Y = pt.Y - GetSystemMetrics(SM_YVIRTUALSCREEN),
+    };
+
     private void Handle(PointerSample[] ps)
     {
         var touches = new List<PointerSample>();
@@ -170,6 +179,7 @@ internal sealed unsafe class InputInjector : IDisposable
         info.touchInfo.pointerInfo.pointerType = PT_TOUCH;
         info.touchInfo.pointerInfo.pointerId = (uint)id;
         info.touchInfo.pointerInfo.pointerFlags = flags;
+        pt = ToSynthetic(pt);
         info.touchInfo.pointerInfo.ptPixelLocation = pt;
         info.touchInfo.touchMask = TOUCH_MASK_CONTACTAREA | TOUCH_MASK_PRESSURE;
         info.touchInfo.rcContact = new RECT { left = pt.X - 2, top = pt.Y - 2, right = pt.X + 2, bottom = pt.Y + 2 };
@@ -282,7 +292,7 @@ internal sealed unsafe class InputInjector : IDisposable
         bool barrel = (p.Buttons & 2) != 0, eraser = (p.Buttons & 4) != 0;
         if (barrel) flags |= POINTER_FLAG_SECONDBUTTON;
         info.penInfo.pointerInfo.pointerFlags = flags | POINTER_FLAG_PRIMARY | POINTER_FLAG_CONFIDENCE;
-        info.penInfo.pointerInfo.ptPixelLocation = pt;
+        info.penInfo.pointerInfo.ptPixelLocation = ToSynthetic(pt);
         uint penFlags = 0;
         if (barrel) penFlags |= PEN_FLAG_BARREL;
         if (eraser) penFlags |= PEN_FLAG_INVERTED | (contact ? PEN_FLAG_ERASER : 0);
