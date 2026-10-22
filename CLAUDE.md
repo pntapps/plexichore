@@ -7,6 +7,7 @@ PlexiChore turns an Android tablet into a portable monitor (extend / primary / m
 - `PlexiChore/` — Android app (Kotlin/Compose). See `PlexiChore/CLAUDE.md`.
 - `PlexiChore-Desktop/` — Windows host (.NET 10 WPF + Engine + tools). See `PlexiChore-Desktop/CLAUDE.md`.
 - `PlexiChore-Mac/` — macOS host (Swift/SwiftUI; working, verified end-to-end with the Tab S8; notarized 1.0.0 DMG built). See `PlexiChore-Mac/CLAUDE.md`.
+- `website/` — landing page (Next.js 16 + Tailwind 4). Downloads come live from GitHub Releases by asset name; see `website/README.md`.
 - `ROADMAP.md` — status, prioritized TODO, known limits. **Update it when you finish or discover something.**
 - `RELEASING.md` — **read it before any release, version bump, DMG/APK build, notarization or signing work**: version
   numbers to bump (Android `versionCode` must increase), notarized DMG steps, the registered Android signing key,

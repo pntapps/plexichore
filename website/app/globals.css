@@ -1,0 +1,325 @@
+@import "tailwindcss";
+
+/* PlexiChore palette — the same deep indigo, violet → cyan gradient as the apps. */
+@theme {
+  --color-ink-950: #06051a;
+  --color-ink-900: #0b0a24;
+  --color-ink-800: #13113a;
+  --color-ink-700: #1d1a52;
+  --color-violet: #8b5cf6;
+  --color-violet-soft: #a78bfa;
+  --color-cyan: #22d3ee;
+  --color-cyan-soft: #67e8f9;
+  --color-mint: #34d399;
+  --color-fg: #eeecff;
+  --color-muted: #a9a5cc;
+  --color-subtle: #7a76a3;
+  --color-line: rgb(255 255 255 / 0.08);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  background-color: var(--color-ink-950);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgb(139 92 246 / 0.45);
+}
+
+@layer components {
+  .text-gradient {
+    background: linear-gradient(100deg, var(--color-violet-soft) 0%, var(--color-cyan) 85%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .bg-brand {
+    background-image: linear-gradient(100deg, #7c5cff 0%, #22d3ee 100%);
+  }
+
+  .glass {
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.055), rgb(255 255 255 / 0.02));
+    border: 1px solid var(--color-line);
+    backdrop-filter: blur(12px);
+  }
+
+  /* Faint dotted grid used behind sections, fading out at the edges. */
+  .grid-dots {
+    background-image: radial-gradient(rgb(255 255 255 / 0.09) 1px, transparent 1px);
+    background-size: 26px 26px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 75%);
+  }
+
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-cyan-soft);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 9999px;
+    padding: 0.875rem 1.75rem;
+    font-weight: 600;
+    color: white;
+    background-image: linear-gradient(100deg, #7c5cff 0%, #22d3ee 100%);
+    box-shadow: 0 10px 40px -10px rgb(124 92 255 / 0.65), inset 0 1px 0 rgb(255 255 255 / 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+    box-shadow: 0 16px 50px -12px rgb(34 211 238 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.3);
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.75rem 1.4rem;
+    font-weight: 500;
+    color: var(--color-fg);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    background: rgb(255 255 255 / 0.03);
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .btn-ghost:hover {
+    background: rgb(255 255 255 / 0.08);
+    border-color: rgb(255 255 255 / 0.24);
+  }
+
+  .card-hover {
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-3px);
+    border-color: rgb(139 92 246 / 0.4);
+  }
+
+  /* Long-form legal / about text. */
+  .prose-plexi {
+    color: var(--color-muted);
+    line-height: 1.75;
+  }
+  .prose-plexi h2 {
+    font-family: var(--font-display);
+    color: var(--color-fg);
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 2.5rem 0 0.75rem;
+  }
+  .prose-plexi h3 {
+    color: var(--color-fg);
+    font-weight: 600;
+    margin: 1.5rem 0 0.5rem;
+  }
+  .prose-plexi p {
+    margin: 0.75rem 0;
+  }
+  .prose-plexi ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin: 0.75rem 0;
+  }
+  .prose-plexi li {
+    margin: 0.35rem 0;
+  }
+  .prose-plexi li::marker {
+    color: var(--color-violet-soft);
+  }
+  .prose-plexi a {
+    color: var(--color-cyan-soft);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgb(103 232 249 / 0.4);
+  }
+  .prose-plexi a:hover {
+    text-decoration-color: currentColor;
+  }
+  .prose-plexi strong {
+    color: var(--color-fg);
+    font-weight: 600;
+  }
+}
+
+/* Hero animation: the cursor glides from the laptop onto the tablet, like dragging a window across. */
+@keyframes cursor-glide {
+  0%, 12% { transform: translate(0, 0); }
+  45%, 62% { transform: translate(var(--glide-x, 230px), var(--glide-y, 30px)); }
+  95%, 100% { transform: translate(0, 0); }
+}
+@keyframes window-glide {
+  0%, 12% { transform: translate(0, 0); opacity: 1; }
+  45%, 62% { transform: translate(var(--glide-x, 230px), var(--glide-y, 30px)); opacity: 1; }
+  95%, 100% { transform: translate(0, 0); opacity: 1; }
+}
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes pulse-line {
+  0% { stroke-dashoffset: 24; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes glow-shift {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.06); }
+}
+
+.animate-cursor-glide { animation: cursor-glide 7s ease-in-out infinite; }
+.animate-window-glide { animation: window-glide 7s ease-in-out infinite; }
+.animate-float-soft { animation: float-soft 6s ease-in-out infinite; }
+.animate-pulse-line { animation: pulse-line 1.2s linear infinite; }
+.animate-glow { animation: glow-shift 8s ease-in-out infinite; }
+
+/* ---------------------------------------------------------------- illustrations */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+/* a stroke draws itself, holds, then fades so the loop restarts cleanly */
+@keyframes draw-stroke {
+  0% { stroke-dashoffset: var(--len, 200); opacity: 1; }
+  45%, 80% { stroke-dashoffset: 0; opacity: 1; }
+  92%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes ripple {
+  0% { transform: scale(0.2); opacity: 0.9; }
+  70%, 100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes dash-flow {
+  to { stroke-dashoffset: -24; }
+}
+@keyframes wave {
+  0%, 100% { opacity: 0.15; }
+  40% { opacity: 1; }
+}
+@keyframes key-press {
+  0%, 14%, 100% { background: rgb(255 255 255 / 0.07); transform: translateY(0); box-shadow: none; }
+  4% { background: linear-gradient(135deg, #7c5cff, #22d3ee); transform: translateY(1px); box-shadow: 0 0 14px rgb(34 211 238 / 0.6); }
+}
+@keyframes rotate-device {
+  0%, 30% { transform: rotate(0deg); }
+  42%, 72% { transform: rotate(90deg); }
+  84%, 100% { transform: rotate(0deg); }
+}
+@keyframes ring-out {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  80%, 100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes type-line {
+  0% { width: 0; }
+  35%, 85% { width: var(--w, 70%); }
+  100% { width: var(--w, 70%); opacity: 0; }
+}
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes bounce-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+@keyframes pop {
+  0%, 20% { transform: scale(0.6); opacity: 0; }
+  32%, 85% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+}
+/* Extend mode: a window travels from the computer onto the tablet and back */
+@keyframes mode-extend {
+  0%, 15% { transform: translate(0, 0); }
+  45%, 65% { transform: translate(var(--mx, 150px), var(--my, 28px)); }
+  95%, 100% { transform: translate(0, 0); }
+}
+/* Primary mode: the taskbar highlight leaves the computer and lands on the tablet */
+@keyframes taskbar-out {
+  0%, 25% { opacity: 1; }
+  40%, 80% { opacity: 0.15; }
+  95%, 100% { opacity: 1; }
+}
+@keyframes taskbar-in {
+  0%, 25% { opacity: 0.15; }
+  40%, 80% { opacity: 1; }
+  95%, 100% { opacity: 0.15; }
+}
+/* Mirror mode: the same cursor path on both screens */
+@keyframes sync-cursor {
+  0%, 100% { transform: translate(0, 0); }
+  30% { transform: translate(var(--cx, 30px), 4px); }
+  60% { transform: translate(calc(var(--cx, 30px) * 0.4), var(--cy, 14px)); }
+}
+/* No-monitor scene (one 9 s cycle shared by all parts) */
+@keyframes plug {
+  0%, 30% { transform: translateY(0); }
+  38%, 78% { transform: translateY(var(--plug-y, 16px)); }
+  86%, 100% { transform: translateY(0); }
+}
+@keyframes screen-off {
+  0%, 32% { opacity: 1; }
+  40%, 80% { opacity: 0.08; }
+  88%, 100% { opacity: 1; }
+}
+@keyframes main-on {
+  0%, 36% { opacity: 0; transform: translateY(6px); }
+  44%, 80% { opacity: 1; transform: translateY(0); }
+  88%, 100% { opacity: 0; transform: translateY(6px); }
+}
+@keyframes tablet-glow {
+  0%, 36% { box-shadow: 0 0 0 rgb(34 211 238 / 0); }
+  44%, 80% { box-shadow: 0 0 60px -6px rgb(34 211 238 / 0.65); }
+  88%, 100% { box-shadow: 0 0 0 rgb(34 211 238 / 0); }
+}
+@keyframes particle {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  15% { opacity: 0.9; }
+  100% { transform: translateY(-120px) scale(0.4); opacity: 0; }
+}
+
+/* Scroll reveal (only once JS has marked the page; without JS everything stays visible) */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.js .reveal.reveal-in {
+  opacity: 1;
+  transform: none;
+}
+/* revealed cards keep their quick hover lift */
+.js .reveal.reveal-in.card-hover {
+  transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+.js .reveal.reveal-in.card-hover:hover {
+  transform: translateY(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  /* illustrations then show their resting state */
+  *, *::before, *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+  .js .reveal { opacity: 1; transform: none; }
+}

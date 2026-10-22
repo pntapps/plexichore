@@ -77,6 +77,11 @@ First done for v1.1.0 (2026-10-22, pre-release, Windows only; Mac/Android stayed
 - Not code-signed yet: the notes must tell users about SmartScreen (*More info → Run anyway*).
 - Smoke test: run the dist exe, connect the tablet (Extend), check the log for CONFIG + hardware encoder.
 
+## 3c. Website downloads
+`website/` picks the newest file per platform from GitHub Releases **by file name** — keep the names exactly
+`PlexiChoreSetup-<ver>.exe`, `PlexiChore-Windows-<ver>-portable.exe`, `PlexiChore-Mac-<ver>.dmg`,
+`PlexiChore-Android-<ver>.apk`. No website change is needed for a new release (cache: 10 minutes).
+
 ## 4. CI
 Push triggers `.github/workflows/{mac,android,windows}.yml` (path-filtered). Mac runs on `macos-15-intel` because
 hosted arm64 runners were repeatedly unavailable. CI artifacts are ad-hoc/unsigned test builds (14 days) — never
