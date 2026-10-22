@@ -20,8 +20,26 @@ struct AboutPage<Host: HostUIModel>: View {
                             .padding(.top, 10)
                         Text("macOS host · protocol v\(PlexiProtocol.version) · TCP \(String(PlexiProtocol.tcpPort)) · UDP \(String(PlexiProtocol.udpPort))")
                             .font(.system(size: 11.5)).foregroundColor(Theme.heroTertiary).padding(.top, 2)
+                        // Required attribution (GPL-3.0 section 7(b), see NOTICE): keep it visible in modified versions too.
+                        HStack(spacing: 0) {
+                            Text("Developed by ").foregroundColor(Theme.heroSecondary)
+                            Button { SystemLinks.open("https://www.pntapps.com") } label: {
+                                Text("PNT Apps").font(.system(size: 13.5, weight: .semibold)).foregroundColor(.white)
+                            }
+                            .buttonStyle(.plain)
+                            Text("  ·  www.pntapps.com").foregroundColor(Theme.heroTertiary)
+                        }
+                        .font(.system(size: 13.5))
+                        .padding(.top, 10)
                     }
                 }
+            }
+
+            SectionHeader(title: "License")
+            PlexiCard(padding: EdgeInsets()) {
+                ComponentRow(title: "Free software under the GNU GPL v3.0",
+                             caption: "Copyright © 2026 PNT Apps. You may use, change and share PlexiChore; if you distribute it or a modified version, release the source under GPL-3.0 and keep the credit to PNT Apps (see NOTICE).",
+                             button: "Source code", url: "https://github.com/pntapps/plexichore")
             }
 
             SectionHeader(title: "Components")

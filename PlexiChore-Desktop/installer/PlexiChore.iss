@@ -19,6 +19,8 @@ AppName={#AppName}
 AppVersion={#AppVersion}
 AppVerName={#AppName} {#AppVersion}
 AppPublisher={#AppPublisher}
+AppPublisherURL=https://www.pntapps.com
+AppCopyright=Copyright (C) 2026 PNT Apps. Licensed under GPL-3.0 (see LICENSE.txt and NOTICE.txt).
 DefaultDirName={autopf}\PlexiChore
 DefaultGroupName=PlexiChore
 DisableProgramGroupPage=yes
@@ -48,6 +50,8 @@ Name: "firewall"; Description: "Allow tablets on my network to connect (Windows 
 Source: "{#DistDir}\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion isreadme
 Source: "..\driver\README.md"; DestDir: "{app}\driver"; DestName: "README-driver.md"; Flags: ignoreversion
+Source: "..\..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
+Source: "..\..\NOTICE"; DestDir: "{app}"; DestName: "NOTICE.txt"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\PlexiChore"; Filename: "{app}\{#AppExe}"

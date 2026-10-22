@@ -1,10 +1,12 @@
 package com.pntapps.plexichore.ui.screens
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.os.Build
 import android.view.WindowManager
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import com.pntapps.plexichore.ui.components.plexiSafeTopAndSides
 import com.pntapps.plexichore.ui.components.safeBottomPadding
@@ -38,6 +40,7 @@ import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.LightbulbCircle
 import androidx.compose.material.icons.rounded.Mouse
 import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.QueryStats
 import androidx.compose.material.icons.rounded.ScreenShare
 import androidx.compose.material.icons.rounded.Science
@@ -66,6 +69,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.core.net.toUri
 import com.pntapps.plexichore.R
 import com.pntapps.plexichore.core.DisplayMode
 import com.pntapps.plexichore.core.Quality
@@ -403,6 +407,14 @@ private fun AboutCard(demo: Boolean, vm: MainViewModel, onOpenHelp: () -> Unit) 
     val debuggable = remember { (ctx.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0 }
     SettingsCard("About", Icons.Rounded.Info) {
         SettingRow("PlexiChore", "Version $version · Protocol v1")
+        Spacer(Modifier.height(16.dp)); Hairline(); Spacer(Modifier.height(16.dp))
+        // Required attribution (GPL-3.0 section 7(b), see NOTICE): keep it visible in modified versions too.
+        SettingRow(
+            "Developed by PNT Apps", "www.pntapps.com · Free software under GPL-3.0", icon = Icons.Rounded.Public,
+            modifier = Modifier.clickable {
+                runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, "https://www.pntapps.com".toUri())) }
+            },
+        )
         Spacer(Modifier.height(16.dp)); Hairline(); Spacer(Modifier.height(16.dp))
         SettingRow("PlexiChore Desktop", "Install on your Windows PC or Mac:\n" + stringResource(R.string.desktop_app_url), icon = Icons.Rounded.Download)
         Spacer(Modifier.height(16.dp))

@@ -2,6 +2,8 @@
 
 Turn any Android tablet into a portable monitor for a Windows PC or a Mac — as a **second (extended) display**, as the computer's **primary display**, or as a **mirror** of an existing screen. Touch and S-Pen input are sent back to the computer.
 
+**Developed by [PNT Apps](https://www.pntapps.com)** · Free software under [GPL-3.0](LICENSE) with attribution terms ([NOTICE](NOTICE)).
+
 ```
 ┌──────────────┐   H.264 video (TCP 47800)   ┌──────────────┐
 │  Windows/Mac │ ──────────────────────────▶ │   Android    │
@@ -86,5 +88,20 @@ See [`PlexiChore-Mac/README.md`](PlexiChore-Mac/README.md).
 ## Known limits
 See [`ROADMAP.md`](ROADMAP.md#known-limits). Highlights: full-screen video is GPU-limited on weak GPUs; the Windows virtual display driver needs a short (≤ ~48) mode list; on the Mac, rotation and scale changes re-create the virtual display (~1 s blank) and the host is not App Store eligible. Still to verify by hand: pinch, two-finger scroll/right-click, S-Pen pressure on the Mac, sleep/wake, an Intel Mac.
 
-## License / third party
-Virtual Display Driver (MIT) and nefcon (BSD-3) are downloaded at install time, not bundled — see `PlexiChore-Desktop/driver/README.md`. Fonts: Inter and Space Grotesk (SIL OFL).
+## Credit to PNT Apps — required
+If you use, fork, modify or redistribute PlexiChore, you must keep the credit to PNT Apps:
+- in your README or main documentation: "Developed by PNT Apps — https://www.pntapps.com", and
+- inside each app, where users can see it (for example an About or Settings screen): "Developed by PNT Apps" linking to https://www.pntapps.com.
+
+You may add your own credits next to it. This is an additional term of the license (GPL-3.0, section 7(b)); see [NOTICE](NOTICE).
+
+A modified version must not be presented as the original PlexiChore, and the names "PNT Apps" and "PlexiChore" and their logos/icons may not be used as the name or icon of your app.
+
+## License
+Copyright © 2026 PNT Apps.
+
+PlexiChore — the Android app, the Windows host and the macOS host — is licensed under the GNU General Public License v3.0 ([LICENSE](LICENSE)) with the additional attribution terms in [NOTICE](NOTICE).
+
+In short: you may use, study, change and share PlexiChore, but if you distribute it or a modified version, you must release your source code under the same GPL-3.0 license (including the attribution terms) and keep the credit to PNT Apps.
+
+Third party: fonts (Inter, Space Grotesk) are under the SIL Open Font License 1.1; Android libraries under Apache 2.0; Windows libraries under MIT. The Virtual Display Driver (MIT), nefcon (BSD-3) and adb are downloaded at install time, not bundled — see [NOTICE](NOTICE) and `PlexiChore-Desktop/driver/README.md`.

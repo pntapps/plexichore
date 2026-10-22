@@ -15,8 +15,27 @@
                         <TextBlock Margin="0,10,0,0" Style="{StaticResource Plexi.Caption}" Foreground="#8E88A8">
                             <Run Text="Host ID " /><Run Text="{Binding HostId, Mode=OneWay}" FontFamily="Cascadia Mono, Consolas" />
                         </TextBlock>
+                        <!-- Required attribution (GPL-3.0 section 7(b), see NOTICE): keep it visible in modified versions too. -->
+                        <TextBlock Margin="0,10,0,0" FontSize="13.5" Foreground="#C9C3E0">
+                            <Run Text="Developed by " /><Hyperlink Command="{Binding OpenUrlCommand}" CommandParameter="https://www.pntapps.com"
+                                                                   Foreground="White" FontWeight="SemiBold">PNT Apps</Hyperlink><Run Text="  ·  www.pntapps.com" Foreground="#8E88A8" />
+                        </TextBlock>
                     </StackPanel>
                 </StackPanel>
+            </Border>
+
+            <TextBlock Text="LICENSE" Style="{StaticResource Plexi.SectionHeader}" />
+            <Border Style="{StaticResource Plexi.Card}" Padding="22,16">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Free software under the GNU GPL v3.0" FontWeight="SemiBold" />
+                        <TextBlock Text="Copyright © 2026 PNT Apps. You may use, change and share PlexiChore; if you distribute it or a modified version, release the source under GPL-3.0 and keep the credit to PNT Apps (see NOTICE)."
+                                   Style="{StaticResource Plexi.Caption}" TextWrapping="Wrap" Margin="0,2,16,0" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Style="{StaticResource Plexi.GhostButton}" Content="Source code" VerticalAlignment="Center"
+                            Command="{Binding OpenUrlCommand}" CommandParameter="https://github.com/pntapps/plexichore" />
+                </Grid>
             </Border>
 
             <TextBlock Text="OPEN-SOURCE COMPONENTS" Style="{StaticResource Plexi.SectionHeader}" />
@@ -57,8 +76,8 @@
                     <Grid Style="{StaticResource Row}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel>
-                            <TextBlock Text="WPF UI · H.NotifyIcon · CommunityToolkit.Mvvm" FontWeight="SemiBold" />
-                            <TextBlock Text="Fluent controls, tray icon and MVVM helpers — MIT License" Style="{StaticResource Plexi.Caption}" />
+                            <TextBlock Text="WPF UI · H.NotifyIcon · CommunityToolkit.Mvvm · Vortice.Windows" FontWeight="SemiBold" />
+                            <TextBlock Text="Fluent controls, tray icon, MVVM helpers and DirectX / Media Foundation bindings — MIT License" Style="{StaticResource Plexi.Caption}" />
                         </StackPanel>
                         <Button Grid.Column="1" Style="{StaticResource Plexi.GhostButton}" Content="WPF UI" Command="{Binding OpenUrlCommand}" CommandParameter="https://github.com/lepoco/wpfui" />
                     </Grid>
