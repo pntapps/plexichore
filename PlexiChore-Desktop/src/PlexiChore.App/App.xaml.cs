@@ -59,6 +59,7 @@ public partial class App : Application
 
         _settings = new SettingsService();
         FirstRun(_settings);
+        StartupRegistration.RegisterCrashRestart();
 
         _vdd = new VirtualDisplayDriverProvider(_loggerFactory.CreateLogger<VirtualDisplayDriverProvider>());
         _server = new ServerHost(_settings, _vdd, _loggerFactory);

@@ -77,6 +77,9 @@ internal sealed unsafe class MfH264Encoder : IVideoEncoder
     private readonly Thread? _eventThread;
     private readonly IMFMediaEventGenerator? _events;
     private volatile bool _disposed;
+    private IMFActivate? _activate;
+    private volatile bool _eventThreadOwnsRelease; // Dispose gave up waiting: the event thread frees the MFT on exit
+    private int _released;
     private byte[]? _paramSets;      // cached SPS+PPS (Annex-B)
     private bool _checkedSeqHeader;
     private long _lastInputPts;
@@ -322,6 +325,8 @@ internal sealed unsafe class MfH264Encoder : IVideoEncoder
                     {
                         mft = act.ActivateObject<IMFTransform>();
                         var enc = new MfH264Encoder(log, mft, (hw ? "hw:" : "sw:") + name, hw, device, ctx, w, h, fps, bitrateKbps, quality, output, h264Profile);
+                        // own reference: the collection releases its activates, and hardware MFTs must be shut down through it
+                        enc._activate = act.QueryInterface<IMFActivate>();
                         return enc;
                     }
                     catch (Exception ex)
@@ -613,6 +618,12 @@ internal sealed unsafe class MfH264Encoder : IVideoEncoder
 
     private void EventLoop()
     {
+        try { EventLoopCore(); }
+        finally { if (_eventThreadOwnsRelease) ReleaseNative(); }
+    }
+
+    private void EventLoopCore()
+    {
         while (!_disposed)
         {
             IMFMediaEvent ev;
@@ -658,13 +669,31 @@ internal sealed unsafe class MfH264Encoder : IVideoEncoder
                 fn(shut);
                 Marshal.Release(shut);
             }
-            _eventThread?.Join(1000);
-            _events?.Dispose();
+            // Never free the MFT under a live event thread (it may be inside GetEvent / ProcessOutput or the output
+            // callback): that was a native access violation in ntdll after sessions ended and after warm-up.
+            if (_eventThread != null && !_eventThread.Join(5000))
+            {
+                _eventThreadOwnsRelease = true;
+                if (_eventThread.IsAlive)
+                {
+                    _log.LogWarning("MFT event thread still busy after 5 s; it releases the encoder when it ends");
+                    return;
+                }
+            }
         }
+        ReleaseNative();
+    }
+
+    private void ReleaseNative()
+    {
+        if (Interlocked.Exchange(ref _released, 1) != 0) return;
         lock (_outLock)
         {
+            try { _events?.Dispose(); } catch { }
             if (_codecApi != IntPtr.Zero) Marshal.Release(_codecApi);
+            try { _activate?.ShutdownObject(); } catch { } // documented teardown for activated (hardware) MFTs
             _mft.Dispose();
+            _activate?.Dispose();
             _devMgr?.Dispose();
             _staging?.Dispose();
         }

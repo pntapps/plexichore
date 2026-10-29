@@ -13,6 +13,15 @@ enum LaunchAtLogin {
         SMAppService.mainApp.status == .requiresApproval
     }
 
+    /// Open at login is on by default: registers once, on the first launch of the bundled app (like Windows'
+    /// "Start with Windows"). Turning it off in Settings sticks. No System Settings prompt here.
+    static func applyDefaultOnFirstLaunch() {
+        let key = "launchAtLoginDefaultApplied"
+        guard isAvailable, !UserDefaults.standard.bool(forKey: key) else { return }
+        UserDefaults.standard.set(true, forKey: key)
+        if SMAppService.mainApp.status != .enabled { try? SMAppService.mainApp.register() }
+    }
+
     /// Returns an error message on failure.
     static func set(_ enabled: Bool) -> String? {
         guard isAvailable else { return "Launch at login needs the bundled PlexiChore.app (see README)." }

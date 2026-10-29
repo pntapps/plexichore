@@ -7,7 +7,7 @@ Read `../CLAUDE.md` and `../PROTOCOL.md` first. Human docs: `README.md`, `driver
 - `dotnet build PlexiChore.slnx -m:1` · `dotnet test PlexiChore.slnx` (111 tests at last count).
 - If the running app locks DLLs in `bin\`, build elsewhere: `dotnet build PlexiChore.slnx --artifacts-path <scratch>`.
 - Publish: `powershell -File publish.ps1` → `dist\PlexiChore.exe` (self-contained single file, uncompressed + ReadyToRun, ~229 MB; first start after publish self-extracts and can take ~30 s). Kill the old exe first (`taskkill /F /IM PlexiChore.exe` — a graceful close only hides it to the tray).
-- Logs: `%LOCALAPPDATA%\PlexiChore\logs\plexichore-YYYYMMDD.log`. Settings: `%APPDATA%\PlexiChore\settings.json` (HostId, trusted devices). Primary-mode crash-restore record: `%APPDATA%\PlexiChore\primary-restore.json`.
+- Logs: `%LOCALAPPDATA%\PlexiChore\logs\plexichore-YYYYMMDD.log`. Settings: `%APPDATA%\PlexiChore\settings.json` (HostId, trusted devices). Primary-mode crash-restore record: `%APPDATA%\PlexiChore\primary-restore.json`. Native crashes never reach our log: check Event Viewer (Application, IDs 1000/1026); on the dev PC WER LocalDumps writes full dumps to `%LOCALAPPDATA%\PlexiChore\CrashDumps` (HKLM `...\Windows Error Reporting\LocalDumps\PlexiChore.exe`, 3 kept).
 - Debug-only demo UI: env `PLEXICHORE_DEMO_UI=1`.
 
 ## Projects

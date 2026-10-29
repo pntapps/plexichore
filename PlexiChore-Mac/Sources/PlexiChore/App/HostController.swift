@@ -124,6 +124,8 @@ final class HostController: ObservableObject {
         if DisplayArrangement.restoreIfCrashed() {
             lastMessage = "Restored your display arrangement from the last session."
         }
+        LaunchAtLogin.applyDefaultOnFirstLaunch()
+        launchAtLogin = LaunchAtLogin.isEnabled
         virtualDisplays.onTerminated = { [weak self] in
             guard let self, let id = self.activeId, let ctx = self.contexts[id],
                   ctx.params?.mode != "mirror" else { return }
