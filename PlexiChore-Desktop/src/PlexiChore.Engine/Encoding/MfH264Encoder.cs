@@ -77,9 +77,15 @@ internal sealed unsafe class MfH264Encoder : IVideoEncoder
     private readonly Thread? _eventThread;
     private readonly IMFMediaEventGenerator? _events;
     private volatile bool _disposed;
+    private volatile bool _stopEvents;               // set after the drain; the event loop keeps servicing the MFT until then
+    private readonly ManualResetEventSlim _drained = new(false);
     private IMFActivate? _activate;
     private volatile bool _eventThreadOwnsRelease; // Dispose gave up waiting: the event thread frees the MFT on exit
     private int _released;
+    /// How long the MFT stays alive after shutdown before the last reference goes. The NVIDIA MFT keeps work items on
+    /// its own RTWorkQ serial queue that can still run after Shutdown and touch the object (crash dump 2026-10-30:
+    /// access violation in nvEncMFTH264x from RTWorkQ!CSerialWorkQueue after a tablet disconnected).
+    private static readonly TimeSpan ReleaseDelay = TimeSpan.FromSeconds(5);
     private byte[]? _paramSets;      // cached SPS+PPS (Annex-B)
     private bool _checkedSeqHeader;
     private long _lastInputPts;
@@ -522,7 +528,7 @@ internal sealed unsafe class MfH264Encoder : IVideoEncoder
         }
         long pts;
         try { pts = s.SampleTime; } catch { pts = _lastInputPts; }
-        if (data.Length == 0) return;
+        if (data.Length == 0 || _disposed) return; // output drained during teardown is dropped
         int slot = (int)((pts / 10000) & 63);
         long tin = _inputTicks[slot];
         if (tin != 0)
@@ -619,12 +625,16 @@ internal sealed unsafe class MfH264Encoder : IVideoEncoder
     private void EventLoop()
     {
         try { EventLoopCore(); }
-        finally { if (_eventThreadOwnsRelease) ReleaseNative(); }
+        finally
+        {
+            _drained.Set();
+            if (_eventThreadOwnsRelease) ReleaseLater();
+        }
     }
 
     private void EventLoopCore()
     {
-        while (!_disposed)
+        while (!_stopEvents)
         {
             IMFMediaEvent ev;
             try { ev = _events!.GetEvent(0); }
@@ -641,6 +651,7 @@ internal sealed unsafe class MfH264Encoder : IVideoEncoder
                     {
                         case MediaEventTypes.TransformNeedInput: _needInput.Release(); EvLog("NeedInput"); break;
                         case MediaEventTypes.TransformHaveOutput: EvLog("HaveOutput"); PullOneOutput(); break;
+                        case MediaEventTypes.TransformDrainComplete: EvLog("DrainComplete"); _drained.Set(); break;
                         default: EvLog("event " + ev.EventType); break;
                     }
                 }
@@ -657,10 +668,20 @@ internal sealed unsafe class MfH264Encoder : IVideoEncoder
     {
         if (_disposed) return;
         _disposed = true;
-        try { _mft.ProcessMessage(TMessageType.MessageNotifyEndOfStream, UIntPtr.Zero); } catch { }
-        try { _mft.ProcessMessage(TMessageType.MessageNotifyEndStreaming, UIntPtr.Zero); } catch { }
         if (_async)
         {
+            // Documented async MFT teardown: flush, end of stream, drain, and keep answering HaveOutput until
+            // METransformDrainComplete, so the MFT has no frame in flight when it is shut down.
+            try { _mft.ProcessMessage(TMessageType.MessageCommandFlush, UIntPtr.Zero); } catch { }
+            try { _mft.ProcessMessage(TMessageType.MessageNotifyEndOfStream, UIntPtr.Zero); } catch { }
+            try
+            {
+                _mft.ProcessMessage(TMessageType.MessageCommandDrain, UIntPtr.Zero);
+                if (!_drained.Wait(1000)) _log.LogDebug("{Name}: no DrainComplete within 1 s", Name);
+            }
+            catch { }
+            try { _mft.ProcessMessage(TMessageType.MessageNotifyEndStreaming, UIntPtr.Zero); } catch { }
+            _stopEvents = true;
             // IMFShutdown::Shutdown unblocks GetEvent in the event thread.
             Marshal.QueryInterface(_mft.NativePointer, in IID_IMFShutdown, out var shut);
             if (shut != IntPtr.Zero)
@@ -680,8 +701,24 @@ internal sealed unsafe class MfH264Encoder : IVideoEncoder
                     return;
                 }
             }
+            ReleaseLater();
+            return;
         }
+        try { _mft.ProcessMessage(TMessageType.MessageNotifyEndOfStream, UIntPtr.Zero); } catch { }
+        try { _mft.ProcessMessage(TMessageType.MessageNotifyEndStreaming, UIntPtr.Zero); } catch { }
         ReleaseNative();
+    }
+
+    /// Frees the async MFT only after ReleaseDelay, so work items the MFT queued internally before Shutdown finish
+    /// against a live object. Encoders are created per session, so this keeps at most a few idle MFTs around briefly.
+    private void ReleaseLater()
+    {
+        if (Volatile.Read(ref _released) != 0) return;
+        _ = Task.Delay(ReleaseDelay).ContinueWith(_ =>
+        {
+            try { ReleaseNative(); }
+            catch (Exception ex) { _log.LogDebug("Encoder release: {Msg}", ex.Message); }
+        }, TaskScheduler.Default);
     }
 
     private void ReleaseNative()

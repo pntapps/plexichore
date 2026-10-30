@@ -601,3 +601,15 @@ public class DisplayEnumerationTests
         Assert.NotEmpty(Displays.GetModes(primary.GdiName));
     }
 }
+
+public class WatchdogTests
+{
+    [Theory]
+    [InlineData(unchecked((int)0xC0000005), true)]  // access violation (NVIDIA MFT teardown crash)
+    [InlineData(unchecked((int)0xC0000409), true)]  // fail-fast
+    [InlineData(unchecked((int)0xE0434352), true)]  // unhandled .NET exception
+    [InlineData(0, false)]                          // Quit
+    [InlineData(1, false)]                          // End task / taskkill
+    [InlineData(unchecked((int)0xC000013A), false)] // logoff / Ctrl+C
+    public void OnlyCrashExitCodesRestart(int code, bool restart) => Assert.Equal(restart, Watchdog.IsCrash(code));
+}

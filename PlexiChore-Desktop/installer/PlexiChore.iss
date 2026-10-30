@@ -78,3 +78,15 @@ Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=
 ; Downloaded platform-tools / driver payloads (user settings in %APPDATA% are kept).
 Type: filesandordirs; Name: "{localappdata}\PlexiChore\platform-tools"
 Type: filesandordirs; Name: "{localappdata}\PlexiChore\vdd"
+
+[Code]
+// The app runs as two PlexiChore.exe processes (tray app + window-less crash watchdog). Restart Manager cannot close
+// the watchdog politely, so end both before files are replaced. Killed with /F, the watchdog sees exit code 1 and
+// does not relaunch the app.
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  Code: Integer;
+begin
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM {#AppExe}', '', SW_HIDE, ewWaitUntilTerminated, Code);
+  Result := '';
+end;
