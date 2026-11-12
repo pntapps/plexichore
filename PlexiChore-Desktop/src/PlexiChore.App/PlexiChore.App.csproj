@@ -16,7 +16,7 @@
     <Product>PlexiChore Desktop</Product>
     <Company>PNT Apps</Company>
     <Copyright>Copyright (c) PNT Apps</Copyright>
-    <Version>1.1.4</Version>
+    <Version>1.1.5</Version>
     <!-- Program.Main runs the crash watchdog mode without starting WPF; App.xaml is compiled as a Page for that. -->
     <StartupObject>PlexiChore.App.Program</StartupObject>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
