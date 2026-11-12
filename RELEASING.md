@@ -8,6 +8,10 @@ user before every outward-facing step** (notarization upload, commit, push, tag,
 ## 0. Ground rules
 - Never commit or push until the user says so. Commit as `PNT Apps <pntapps.dev@gmail.com>`; push with
   `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin main`.
+  On the Windows dev PC the active `gh` account is `projectninjatech` (403 on this repo); push and create releases with
+  the `pntapps` token instead: `T=$(gh auth token --user pntapps)`, then
+  `git -c credential.helper= -c "credential.helper=!f() { echo username=pntapps; echo password=$T; }; f" push origin main`
+  and `GH_TOKEN=$T gh release create …` (v1.1.5 was published this way).
 - Never commit signing material or build output: keystores (`*.jks`, `*.keystore`), passwords, `.p12`, DMGs, APKs,
   `PlexiChore-Mac/build/`, `PlexiChore/app/release/` (Android Studio's signed-APK folder, git-ignored).
 - Never read password files into the conversation. Pass them to tools by path (`keytool -storepass:file …`,
