@@ -33,7 +33,11 @@ public sealed class PlexiServer : IPlexiServer, ISessionHost
     {
         _log = logger ?? NullLogger.Instance;
         _virtualDisplays = virtualDisplays == null ? null : new VirtualDisplayLeases(virtualDisplays, _log);
+        _mirrorAspect = new MirrorAspectSwitcher(_log);
     }
+
+    private readonly MirrorAspectSwitcher _mirrorAspect;
+    MirrorAspectSwitcher ISessionHost.MirrorAspect => _mirrorAspect;
 
     public bool IsRunning { get; private set; }
 
@@ -75,6 +79,10 @@ public sealed class PlexiServer : IPlexiServer, ISessionHost
 
             _cts = new CancellationTokenSource();
             _acceptTask = AcceptLoopAsync(_cts.Token);
+
+            _mirrorAspect.SetStateFile(options.MirrorAspectStateFile);
+            try { _mirrorAspect.RestorePending(); } // a crash while a monitor was switched to the tablet's shape
+            catch (Exception ex) { _log.LogWarning("Mirror aspect restore failed: {Msg}", ex.Message); }
 
             _discovery = new DiscoveryBeacon(options.DiscoveryPort, BuildBeacon, _log);
             _discovery.Start();
@@ -140,6 +148,7 @@ public sealed class PlexiServer : IPlexiServer, ISessionHost
         try { await Task.WhenAll(_sessionTasks.Values.ToArray()).WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false); }
         catch (Exception ex) { _log.LogDebug("stop: {Msg}", ex.Message); }
         if (_virtualDisplays is VirtualDisplayLeases leases) { try { await leases.DetachAllAsync().ConfigureAwait(false); } catch { } }
+        try { _mirrorAspect.RestoreAll(); } catch (Exception ex) { _log.LogWarning("Mirror aspect restore failed: {Msg}", ex.Message); }
         try { if (_acceptTask != null) await _acceptTask.ConfigureAwait(false); } catch { }
         cts?.Dispose();
         _log.LogInformation("PlexiServer stopped");

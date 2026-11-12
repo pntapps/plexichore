@@ -38,6 +38,7 @@ public sealed partial class MainViewModel : ObservableObject
         _requireApprovalForWifi = s.RequireApprovalForWifi;
         _showConnectNotifications = s.ShowConnectNotifications;
         _encoderIndex = s.PreferHardwareEncoder ? 0 : 1;
+        _mirrorMatchTabletAspect = s.MirrorMatchTabletAspect;
         ReloadTrusted();
 
         _server.StateChanged += (_, _) => Ui(RefreshHero);
@@ -485,6 +486,14 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     partial void OnShowConnectNotificationsChanged(bool value) => _settings.Update(s => s.ShowConnectNotifications = value);
+
+    [ObservableProperty] private bool _mirrorMatchTabletAspect;
+
+    partial void OnMirrorMatchTabletAspectChanged(bool value)
+    {
+        _settings.Update(s => s.MirrorMatchTabletAspect = value);
+        _ = _server.ApplyOptionsAsync(); // takes effect from the next connection
+    }
 
     partial void OnEncoderIndexChanged(int value)
     {

@@ -1,5 +1,5 @@
 // Standalone host for PlexiChore.Engine: mirror mode (no virtual display provider), console logging.
-// Usage: EngineHost [--port 47800] [--discovery-port 47801] [--approve] [--seconds N] [--sw] [--verbose]
+// Usage: EngineHost [--port 47800] [--discovery-port 47801] [--approve] [--seconds N] [--sw] [--verbose] [--mirror-aspect]
 using Microsoft.Extensions.Logging;
 using PlexiChore.Engine;
 
@@ -11,7 +11,7 @@ if (args.Length > 0 && args[0] == "--encbench")
 }
 
 int port = 47800, discoveryPort = 47801, seconds = 0;
-bool autoApprove = false, sw = false, verbose = false;
+bool autoApprove = false, sw = false, verbose = false, mirrorAspect = false;
 for (int i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -22,6 +22,7 @@ for (int i = 0; i < args.Length; i++)
         case "--approve": autoApprove = true; break;
         case "--sw": sw = true; break;
         case "--verbose": verbose = true; break;
+        case "--mirror-aspect": mirrorAspect = true; break;
     }
 }
 
@@ -51,6 +52,7 @@ await server.StartAsync(new ServerOptions
     HostId = "enginehost-" + Environment.MachineName,
     PreferHardwareEncoder = !sw,
     RequireApprovalForWifi = true,
+    MirrorMatchTabletAspect = mirrorAspect,
 }, cts.Token);
 log.LogInformation("EngineHost running (Ctrl+C to stop{Limit})", seconds > 0 ? $", auto-exit after {seconds}s" : "");
 try { await Task.Delay(seconds > 0 ? TimeSpan.FromSeconds(seconds) : Timeout.InfiniteTimeSpan, cts.Token); }

@@ -16,6 +16,7 @@ internal interface ISessionHost
 {
     ServerOptions Options { get; }
     IVirtualDisplayProvider? VirtualDisplays { get; }
+    MirrorAspectSwitcher MirrorAspect { get; }
     bool IsTrusted(string deviceId);
     void MarkTrusted(string deviceId);
     void OnSessionStarted(Session s, SessionInfo info);
@@ -171,6 +172,7 @@ internal sealed partial class Session
         _pipeline = null;
         _injector?.Dispose();
         await DetachVmAsync(VirtualDisplayLeases.LingerFor(_endReason)); // grace period for a fast reconnect
+        await ReleaseMirrorAspectAsync(VirtualDisplayLeases.LingerFor(_endReason));
         try { _stream?.Dispose(); } catch { }
         _log.LogInformation("Session {Name} ({Remote}) ended: {Reason}", _hello.DeviceName, Remote, _endReason);
         if (_startedRaised && Info != null) _host.OnSessionEnded(this, Info);
@@ -449,6 +451,27 @@ internal sealed partial class Session
         catch (Exception ex) { _log.LogWarning("Virtual display detach failed: {Msg}", ex.Message); }
     }
 
+    private async Task ReleaseMirrorAspectAsync(TimeSpan linger = default)
+    {
+        try { await _host.MirrorAspect.ReleaseAsync(Id, linger); }
+        catch (Exception ex) { _log.LogWarning("Mirror aspect restore failed: {Msg}", ex.Message); }
+    }
+
+    /// Mirror + "match the tablet's shape": switches the mirrored monitor to the tablet's aspect ratio (once per
+    /// session; ref-counted across sessions). Returns true when the monitor's mode changed.
+    private async Task<bool> MatchMirrorAspectAsync(string device)
+    {
+        if (!_host.Options.MirrorMatchTabletAspect) { await ReleaseMirrorAspectAsync(); return false; }
+        int tw = _hello.WidthPx, th = _hello.HeightPx;
+        if (tw <= 0 || th <= 0) return false;
+        try { return await _host.MirrorAspect.AcquireAsync(Id, device, (double)Math.Max(tw, th) / Math.Min(tw, th), _cts.Token); }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _log.LogWarning("Mirror aspect switch failed: {Msg}", ex.Message);
+            return false;
+        }
+    }
+
     public async Task ReconfigureAsync(string why)
     {
         await _reconfigLock.WaitAsync().ConfigureAwait(false);
@@ -480,6 +503,7 @@ internal sealed partial class Session
 
             if (virtualMode)
             {
+                await ReleaseMirrorAspectAsync(); // switched from mirror: the PC monitor gets its own mode back first
                 bool available = false;
                 try { available = vdp?.IsAvailable == true; } catch { }
                 if (available)
@@ -535,6 +559,11 @@ internal sealed partial class Session
                 monitors = Monitors.Enumerate();
                 var m = monitors.ElementAtOrDefault(req.MonitorIndex) ?? monitors.FirstOrDefault()
                         ?? throw new InvalidOperationException("No display outputs found");
+                if (await MatchMirrorAspectAsync(m.DeviceName))
+                {
+                    monitors = Monitors.Enumerate(); // new size (and maybe index order) after the mode switch
+                    m = monitors.FirstOrDefault(x => string.Equals(x.DeviceName, m.DeviceName, StringComparison.OrdinalIgnoreCase)) ?? m;
+                }
                 deviceName = m.DeviceName;
                 (boxW, boxH, fps) = ClampToDecoder(TabletBox(req.ResolutionScale), req.Fps); // mirror: the PC desktop is landscape
             }

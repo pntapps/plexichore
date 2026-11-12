@@ -124,6 +124,17 @@
                     </StackPanel>
                 </DockPanel>
             </Border>
+            <Border Style="{StaticResource Plexi.SettingRow}">
+                <DockPanel>
+                    <ui:SymbolIcon Symbol="Resize24" Style="{StaticResource RowIcon}" />
+                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding MirrorMatchTabletAspect}" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Mirror: match the tablet's shape" FontSize="14" />
+                        <TextBlock TextWrapping="Wrap" Style="{StaticResource Plexi.Caption}"
+                                   Text="While mirroring, switch the PC monitor to a resolution with the tablet's aspect ratio (e.g. 16:10) so the tablet has no black bars. Your resolution comes back when the tablet disconnects. Applies from the next connection." />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
 
             <TextBlock Text="DIAGNOSTICS" Style="{StaticResource Plexi.SectionHeader}" />
             <Border Style="{StaticResource Plexi.SettingRow}">

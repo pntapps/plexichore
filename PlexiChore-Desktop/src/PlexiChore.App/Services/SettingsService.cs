@@ -21,6 +21,8 @@ public sealed class AppSettings
     public bool ServerPaused { get; set; }
     public bool ShowConnectNotifications { get; set; } = true;
     public bool AutoAdbReverse { get; set; } = true;
+    /// Mirror mode: switch the PC monitor to the tablet's aspect ratio while mirrored (restored on disconnect).
+    public bool MirrorMatchTabletAspect { get; set; }
     /// Optional user override for adb.exe.
     public string? AdbPath { get; set; }
     public List<TrustedDevice> TrustedDevices { get; set; } = new();

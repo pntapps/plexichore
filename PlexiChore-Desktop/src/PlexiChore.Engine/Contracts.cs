@@ -16,6 +16,12 @@ public sealed record ServerOptions
     /// Additive: for USB (loopback / adb reverse) sessions, resolves the physical link from the tablet's HELLO model:
     /// "usb-cable" or "usb-wireless-adb" (null = unknown). Sent to the tablet as CONFIG `link`.
     public Func<string?, CancellationToken, Task<string?>>? LoopbackLinkResolver { get; init; }
+    /// Additive: in mirror mode, switch the mirrored PC monitor to its largest mode with the tablet's aspect ratio
+    /// (e.g. 16:10) so the tablet is filled without black bars; the original mode comes back when the session ends.
+    public bool MirrorMatchTabletAspect { get; init; }
+    /// Additive: file that records the original monitor modes while switched, so a crash is undone at the next start.
+    /// Null = no record (a reboot still undoes the switch: it is never written to Windows' saved layout).
+    public string? MirrorAspectStateFile { get; init; }
 }
 
 public sealed record SessionInfo(

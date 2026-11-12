@@ -12,6 +12,8 @@ public static class AppPaths
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppName);
 
     public static string SettingsFile => Path.Combine(RoamingDir, "settings.json");
+    /// Original monitor modes while mirror mode has switched one to the tablet's aspect ratio (crash restore).
+    public static string MirrorAspectStateFile => Path.Combine(RoamingDir, "mirror-aspect-restore.json");
     public static string LogsDir => Path.Combine(LocalDir, "logs");
     public static string PlatformToolsDir => Path.Combine(LocalDir, "platform-tools");
     public static string VddWorkDir => Path.Combine(LocalDir, "vdd");

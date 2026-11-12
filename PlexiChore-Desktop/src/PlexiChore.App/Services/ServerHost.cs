@@ -51,6 +51,8 @@ public sealed class ServerHost : IAsyncDisposable
             TrustedDeviceIds = s.TrustedDevices.Select(d => d.Id).ToArray(),
             PreferHardwareEncoder = s.PreferHardwareEncoder,
             LoopbackLinkResolver = LoopbackLinkResolver,
+            MirrorMatchTabletAspect = s.MirrorMatchTabletAspect,
+            MirrorAspectStateFile = AppPaths.MirrorAspectStateFile,
         };
     }
 
